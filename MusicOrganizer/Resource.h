@@ -29,6 +29,8 @@
 #define ID_TEXTBOXYEAR          20
 #define ID_TEXTBOXCOMMENT       21
 #define ID_BUTTONTAGS           22
+#define ID_BUTTONNEXT           24
+#define ID_BUTTONPREV           23
 #endif
 // Следующие стандартные значения для новых объектов
 //

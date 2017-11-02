@@ -82,7 +82,7 @@
     szOriginalArtist  = m_getNewString(ID3FID_ORIGARTIST);
     szURL             = m_getNewString(ID3FID_WWWUSER);
 
-    m_parseGenre();
+    //m_parseGenre();
     if(szYear)  sscanf(szYear,  "%i", &nYear);
     if(szTrack) sscanf(szTrack, "%i", &nTrack);
 

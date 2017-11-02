@@ -13,6 +13,7 @@
 #include <fstream>
 #include <string>
 #include <ShlObj.h>
+#include <cstddef>
 #pragma comment(lib,"shell32.lib")
 #include <gdiplus.h>
 using namespace Gdiplus;
@@ -173,7 +174,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    HWND hWnd;
 
    hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPED | WS_BORDER | WS_SYSMENU,
-      CW_USEDEFAULT, 0, 875, 370, NULL, NULL, hInstance, NULL);
+      CW_USEDEFAULT, 0, 1005, 370, NULL, NULL, hInstance, NULL);
 
    hwndBtnPlay = CreateWindow(TEXT("BUTTON"), TEXT("Play"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 10, 10, 50, 35, hWnd, (HMENU)ID_BUTTONPLAY,(HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);      
    EnableWindow(hwndBtnPlay, FALSE);
@@ -182,9 +183,9 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    hwndBtnStop = CreateWindow(TEXT("BUTTON"),TEXT("Stop"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 130, 10, 50, 35, hWnd, (HMENU)ID_BUTTONSTOP, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
    EnableWindow(hwndBtnStop, FALSE);
    
-   hwndBtnNext = CreateWindow(TEXT("BUTTON"), TEXT("Next"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 190, 10, 50, 35, hWnd, (HMENU)ID_BUTTONADD, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
+   hwndBtnNext = CreateWindow(TEXT("BUTTON"), TEXT("Next"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 250, 10, 50, 35, hWnd, (HMENU)ID_BUTTONNEXT, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
    EnableWindow(hwndBtnNext, FALSE);
-   hwndBtnPrev = CreateWindow(TEXT("BUTTON"), TEXT("Prev"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 250, 10, 50, 35, hWnd, (HMENU)ID_BUTTONADD, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
+   hwndBtnPrev = CreateWindow(TEXT("BUTTON"), TEXT("Prev"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 190, 10, 50, 35, hWnd, (HMENU)ID_BUTTONPREV, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
    EnableWindow(hwndBtnPrev, FALSE);
    hwndBtnAdd = CreateWindow(TEXT("BUTTON"), TEXT("Add"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 310, 10, 50, 35, hWnd, (HMENU)ID_BUTTONADD, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
 
@@ -194,20 +195,20 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    hwndLabelVol = CreateWindow(TEXT("static"), TEXT("Volume"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 10, 55, 50, 15, hWnd, (HMENU)(501), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
 
-   hwndLabelTitle = CreateWindow(TEXT("static"), TEXT("Title[30]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 80, 55, 52, 17, hWnd, (HMENU)(502), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
-   hwndTBTitle = CreateWindow(TEXT("Edit"), NULL, WS_BORDER | WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL, 170, 55, 180, 20, hWnd, (HMENU)ID_TEXTBOXTITLE, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), 0);
+   hwndLabelTitle = CreateWindow(TEXT("static"), TEXT("Title [30]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 80, 55, 57, 17, hWnd, (HMENU)(502), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
+   hwndTBTitle = CreateWindow(TEXT("Edit"), NULL, WS_BORDER | WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL, 175, 55, 180, 20, hWnd, (HMENU)ID_TEXTBOXTITLE, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), 0);
 
-   hwndLabelArtist = CreateWindow(TEXT("static"), TEXT("Artist[30]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 80, 85, 60, 17, hWnd, (HMENU)(503), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
-   hwndTBArtist = CreateWindow(TEXT("Edit"), NULL, WS_BORDER | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 170, 85, 180, 20, hWnd, (HMENU)ID_TEXTBOXARTIST, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), 0);
+   hwndLabelArtist = CreateWindow(TEXT("static"), TEXT("Artist [30]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 80, 85, 65, 17, hWnd, (HMENU)(503), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
+   hwndTBArtist = CreateWindow(TEXT("Edit"), NULL, WS_BORDER | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 175, 85, 180, 20, hWnd, (HMENU)ID_TEXTBOXARTIST, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), 0);
 
-   hwndLabelAlbum = CreateWindow(TEXT("static"), TEXT("Album[30]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 80, 115, 65, 17, hWnd, (HMENU)(504), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
-   hwndTBAlbum = CreateWindow(TEXT("Edit"), NULL, WS_BORDER | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 170, 115, 180, 20, hWnd, (HMENU)ID_TEXTBOXALBUM, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), 0);
+   hwndLabelAlbum = CreateWindow(TEXT("static"), TEXT("Album [30]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 80, 115, 70, 17, hWnd, (HMENU)(504), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
+   hwndTBAlbum = CreateWindow(TEXT("Edit"), NULL, WS_BORDER | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 175, 115, 180, 20, hWnd, (HMENU)ID_TEXTBOXALBUM, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), 0);
 
-   hwndLabelYear = CreateWindow(TEXT("static"), TEXT("Year[4]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 80, 145, 52, 17, hWnd, (HMENU)(505), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
-   hwndTBYear = CreateWindow(TEXT("Edit"), NULL, WS_BORDER | WS_CHILD | WS_VISIBLE, 170, 145, 180, 20, hWnd, (HMENU)ID_TEXTBOXYEAR, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), 0);
+   hwndLabelYear = CreateWindow(TEXT("static"), TEXT("Year [4]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 80, 145, 52, 17, hWnd, (HMENU)(505), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
+   hwndTBYear = CreateWindow(TEXT("Edit"), NULL, WS_BORDER | WS_CHILD | WS_VISIBLE, 175, 145, 180, 20, hWnd, (HMENU)ID_TEXTBOXYEAR, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), 0);
 
-   hwndLabelComment = CreateWindow(TEXT("static"), TEXT("Comment[30]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 80, 175, 85, 17, hWnd, (HMENU)(506), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
-   hwndTBComment = CreateWindow(TEXT("Edit"), NULL, WS_BORDER | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 170, 175, 180, 20, hWnd, (HMENU)ID_TEXTBOXCOMMENT, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), 0);
+   hwndLabelComment = CreateWindow(TEXT("static"), TEXT("Comment [30]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 80, 175, 90, 17, hWnd, (HMENU)(506), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
+   hwndTBComment = CreateWindow(TEXT("Edit"), NULL, WS_BORDER | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 175, 175, 180, 20, hWnd, (HMENU)ID_TEXTBOXCOMMENT, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), 0);
 
    hwndBtnChangeTags = CreateWindow(TEXT("BUTTON"), TEXT("Change tags"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 80, 220, 90, 35, hWnd, (HMENU)ID_BUTTONTAGS, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
    EnableWindow(hwndBtnChangeTags, FALSE);
@@ -219,7 +220,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    SendMessage(hwndTBYear, EM_LIMITTEXT, 4, 0);
 
    int const itemNum = 3;
-   char* header[colNum] = { "Num", "Title", "Author" };
+   char* header[colNum] = { "Title", "Author", "Name" };
    
    if ((hWndLV = CreateListView(hWnd, ID_LISTVIEW)) == NULL)
 	   MessageBox(NULL, TEXT("Невозможно создать элемент ListView"), TEXT("Ошибка"), MB_OK);
@@ -247,6 +248,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	wchar_t wtext[250] = { 0 };
 	switch (message)
 	{
+	case WM_CREATE:
+		BASS_SetVolume(100);
+		break;
+
 	case WM_COMMAND:
 		wmId = LOWORD(wParam);
 		wmEvent = HIWORD(wParam);
@@ -301,6 +306,53 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			pauseFlag = false;
 			break;
 		}
+		case ID_BUTTONNEXT:
+		{
+			BASS_ChannelStop(stream);
+			BASS_StreamFree(stream);
+			if (selectedItemIndex<itemsCount-1)
+			selectedItemIndex++;
+			pauseFlag = false;
+			SendMessage(hWnd, WM_COMMAND, ID_BUTTONPLAY, 0);
+			
+			ListView_SetItemState(hWndLV, selectedItemIndex, LVIS_SELECTED, LVIS_SELECTED);
+			ListView_SetItemState(hWndLV, selectedItemIndex - 1, LVIF_STATE, LVIS_SELECTED);
+			//ListView_SetItemState(hWndLV, selectedItemIndex, LVIS_FOCUSED, LVIS_FOCUSED);
+			
+			break;
+		}
+		case ID_BUTTONPREV:
+		{
+			BASS_ChannelStop(stream);
+			BASS_StreamFree(stream);
+			if (selectedItemIndex>0)
+			selectedItemIndex--;
+			pauseFlag = false;
+			SendMessage(hWnd, WM_COMMAND, ID_BUTTONPLAY, 0);
+			ListView_SetItemState(hWndLV, selectedItemIndex, LVIS_SELECTED, LVIS_SELECTED);
+			ListView_SetItemState(hWndLV, selectedItemIndex + 1, LVIF_STATE, LVIS_SELECTED);
+			break;
+		}
+		case ID_BUTTONDELETE:
+		{
+			auto it = songList.begin();
+
+			char * nx = *std::next(it, selectedItemIndex);
+			songList.remove(nx);
+			if (selectedItemIndex != -1)
+			{
+			
+			ListView_DeleteItem(hWndLV, selectedItemIndex);
+			itemsCount--;
+			SendMessage(hWnd, WM_COMMAND, ID_BUTTONSTOP, 0);
+		}
+			SetWindowText(hwndTBTitle, TEXT(""));
+			SetWindowText(hwndTBArtist, TEXT(""));
+			SetWindowText(hwndTBAlbum, TEXT(""));
+			SetWindowText(hwndTBYear, TEXT(""));
+			SetWindowText(hwndTBComment, TEXT(""));
+			break;
+		}
 		case ID_BUTTONADD:
 		{
 			OPENFILENAME  ofn;
@@ -320,18 +372,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT;
 			if (GetOpenFileName(&ofn) == TRUE)
 			{
-				//LPWSTR a = ofn.lpstrFile;
 				wcstombs(buffer2, ofn.lpstrFile, 1000);
-				
 				char* temp = (char*)malloc(1000 + 1);
 				strcpy(temp, buffer2);
 				songList.push_back(temp);
-		/*		LPWSTR ptr = wtext;
-
-				mbstowcs(wtext, temp, strlen(temp) + 1);//Plus null
-				oneSong.name = wtext;
-				//tempSong.name = ofn.lpstrFile;// temp;
-				songList.push_back(oneSong);*/
 			}
 
 
@@ -339,28 +383,28 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			BOOL init = false;
 			id_tag mp3tag;
 			ZeroMemory(&mp3tag, sizeof mp3tag);
-			//char buffer2[500] = {0};
-			// First arg is the pointer to destination char, second arg is
-			// the pointer to source wchar_t, last arg is the size of char buffer
-//			wcstombs(buffer2, oneSong.name, 1000);
 			
 			if (mp3fi.Init(buffer2))
 			{
 
 				init = TRUE;
-				// If MP3 is there use ID3Lib ...
 				if (mp3fi.bHasV1Tag || mp3fi.bHasV2Tag)
 				{
 					
 					LPWSTR ptr = wtext;
 					
-					mbstowcs(wtext, mp3fi.szTitle, strlen(mp3fi.szTitle) + 1);//Plus null
-					SetWindowText(hwndTBTitle, ptr);
-					mbstowcs(wtext, mp3fi.szArtist, strlen(mp3fi.szArtist) + 1);//Plus null
-					SetWindowText(hwndTBArtist, ptr);
-					mbstowcs(wtext, mp3fi.szAlbum, strlen(mp3fi.szAlbum) + 1);//Plus null
-					SetWindowText(hwndTBAlbum, ptr);
-					
+					if (mp3fi.szTitle != NULL) {
+						mbstowcs(wtext, mp3fi.szTitle, strlen(mp3fi.szTitle) + 1);//Plus null
+						SetWindowText(hwndTBTitle, ptr);
+					}
+					if (mp3fi.szArtist != NULL) {
+						mbstowcs(wtext, mp3fi.szArtist, strlen(mp3fi.szArtist) + 1);//Plus null
+						SetWindowText(hwndTBArtist, ptr);
+					}
+					if (mp3fi.szAlbum != NULL) {
+						mbstowcs(wtext, mp3fi.szAlbum, strlen(mp3fi.szAlbum) + 1);//Plus null
+						SetWindowText(hwndTBAlbum, ptr);
+					}
 
 					if (mp3fi.szYear != NULL) {
 						mbstowcs(wtext, mp3fi.szYear, strlen(mp3fi.szYear) + 1);//Plus null
@@ -370,19 +414,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						mbstowcs(wtext, mp3fi.szComment, strlen(mp3fi.szComment) + 1);//Plus null
 						SetWindowText(hwndTBComment, ptr);
 					}
-					char buf[3];
-					char* songNumber = itoa(itemsCount + 1, buf, 10);
-					//char buffer[500];
-					// First arg is the pointer to destination char, second arg is
-					// the pointer to source wchar_t, last arg is the size of char buffer
-					//wcstombs(buffer, *TAG.Title, 500);
 
-					char* item[colNum] = { songNumber, mp3fi.szTitle, mp3fi.szArtist };
+					char* item[colNum] = { mp3fi.szTitle, mp3fi.szArtist,mp3fi.szFilename };
+					AddListViewItems(hWndLV, colNum, textMaxLen, item);
+				}
+				else
+				{
+					char* item[colNum] = { NULL, NULL,mp3fi.szFilename };
 					AddListViewItems(hWndLV, colNum, textMaxLen, item);
 				}
 			}
 			else
+			{
 				MessageBox(hWnd, TEXT("Unable to initialize MP3Tag class"), TEXT("Error"), MB_ICONERROR);
+				char* item[colNum] = { NULL, NULL,mp3fi.szFilename };
+				AddListViewItems(hWndLV, colNum, textMaxLen, item);
+			}
 
 			if (init) {
 				mp3fi.Free();
@@ -393,41 +440,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 
 
-			/*LPOFSTRUCT lpOpenStruct;
-			HANDLE handletemp = CreateFile(oneSong.name, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-			if (handletemp != INVALID_HANDLE_VALUE)
-			{
-				SetFilePointer(handletemp, -128, NULL, FILE_END);
-				if (ReadFile(handletemp, &TAG, 128, NULL, NULL) == 0) {
-					MessageBox(NULL, TEXT("Ошибка чтения."), NULL, 0);
-					CloseHandle(handletemp);
-					return 1;
-				}
-				wchar_t wtext[20];
-				
-				/*LPWSTR ptr = wtext;
-				mbstowcs(wtext, TAG.Title, strlen(TAG.Title) + 1);//Plus null
-				SetWindowText(hwndTBTitle, ptr);
-				mbstowcs(wtext, TAG.Artist, strlen(TAG.Artist) + 1);//Plus null
-				SetWindowText(hwndTBArtist, ptr);
-				mbstowcs(wtext, TAG.Album, strlen(TAG.Album) + 1);//Plus null
-				SetWindowText(hwndTBAlbum, ptr);
-				mbstowcs(wtext, TAG.Year, strlen(TAG.Year) + 1);//Plus null
-				SetWindowText(hwndTBYear, ptr);
-				mbstowcs(wtext, TAG.Comment, strlen(TAG.Comment) + 1);//Plus null
-				SetWindowText(hwndTBComment, ptr);
-				char buf[3];
-				char* songNumber = itoa(itemsCount + 1, buf, 10);
-				//char buffer[500];
-				// First arg is the pointer to destination char, second arg is
-				// the pointer to source wchar_t, last arg is the size of char buffer
-				//wcstombs(buffer, *TAG.Title, 500);
-				
-				char* item[colNum] = { songNumber, TAG.Title, TAG.Artist };
-				AddListViewItems(hWndLV, colNum, textMaxLen, item);*/
-			/*
-			}
-			CloseHandle(handletemp);*/
+		
 
 			break;
 		}
@@ -439,6 +452,18 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
 		break;
+	case WM_VSCROLL:
+			switch (LOWORD(wParam)) {
+			case TB_THUMBTRACK:
+			case TB_THUMBPOSITION:
+				if (hwndTrack == (HWND)lParam) {
+					float dwPos = SendMessage(hwndTrack, TBM_GETPOS, 0, 0);
+					float volume = 1 - (dwPos * 0.01);
+					BASS_SetVolume(volume);
+				}
+				break;
+			}
+			break;
     case WM_PAINT:
         {
             PAINTSTRUCT ps;
@@ -457,7 +482,63 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			selectedItemIndex = ListView_GetNextItem(hWndLV, -1, LVNI_ALL | LVNI_SELECTED);
 			if (selectedItemIndex >= 0)
 			{
+				BOOL init = false;
+				id_tag mp3tag;
+				ZeroMemory(&mp3tag, sizeof mp3tag);
+				auto it = songList.begin();
 
+				char * nx = *std::next(it, selectedItemIndex);
+				if (mp3fi.Init(nx))
+				{
+
+					init = TRUE;
+					if (mp3fi.bHasV1Tag || mp3fi.bHasV2Tag)
+					{
+
+						LPWSTR ptr = wtext;
+
+						if (mp3fi.szTitle != NULL) {
+							mbstowcs(wtext, mp3fi.szTitle, strlen(mp3fi.szTitle) + 1);//Plus null
+							SetWindowText(hwndTBTitle, ptr);
+						}
+						if (mp3fi.szArtist != NULL) {
+							mbstowcs(wtext, mp3fi.szArtist, strlen(mp3fi.szArtist) + 1);//Plus null
+							SetWindowText(hwndTBArtist, ptr);
+						}
+						if (mp3fi.szAlbum != NULL) {
+							mbstowcs(wtext, mp3fi.szAlbum, strlen(mp3fi.szAlbum) + 1);//Plus null
+							SetWindowText(hwndTBAlbum, ptr);
+						}
+
+						if (mp3fi.szYear != NULL) {
+							mbstowcs(wtext, mp3fi.szYear, strlen(mp3fi.szYear) + 1);//Plus null
+							SetWindowText(hwndTBYear, ptr);
+						}
+						if (mp3fi.szComment != NULL) {
+							mbstowcs(wtext, mp3fi.szComment, strlen(mp3fi.szComment) + 1);//Plus null
+							SetWindowText(hwndTBComment, ptr);
+						}
+
+					//	char* item[colNum] = { mp3fi.szTitle, mp3fi.szArtist,mp3fi.szFilename };
+					//	AddListViewItems(hWndLV, colNum, textMaxLen, item);
+					}
+					else
+					{
+						//char* item[colNum] = { NULL, NULL,mp3fi.szFilename };
+						//AddListViewItems(hWndLV, colNum, textMaxLen, item);
+					}
+				}
+				else
+				{
+					//MessageBox(hWnd, TEXT("Unable to initialize MP3Tag class"), TEXT("Error"), MB_ICONERROR);
+					//char* item[colNum] = { NULL, NULL,mp3fi.szFilename };
+					//AddListViewItems(hWndLV, colNum, textMaxLen, item);
+				}
+
+				if (init) {
+					mp3fi.Free();
+					init = FALSE;
+				}
 				/*auto it = songList.begin();
 
 				char * nx = *std::next(it, selectedItemIndex);
@@ -482,6 +563,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				CloseHandle(handletemp);*/
 				EnableWindow(hwndBtnChangeTags, TRUE);
 				EnableWindow(hwndBtnPlay, TRUE);
+				EnableWindow(hwndBtnNext, TRUE);
+				EnableWindow(hwndBtnPrev, TRUE);
 				EnableWindow(hwndBtnDelete, TRUE);
 				BASS_ChannelStop(stream);
 				BASS_StreamFree(stream);
@@ -556,7 +639,7 @@ int SetListViewColumns(HWND hWndLV, int colNum, int textMaxLen, char** header)
 		if (index == -1)
 			break;
 	}
-	ListView_SetColumnWidth(hWndLV, 0, 50);
+	ListView_SetColumnWidth(hWndLV, 0, 180);
 	ListView_SetColumnWidth(hWndLV, 1, 180);
 	ListView_SetColumnWidth(hWndLV, 2, 180);
 	return index;
@@ -572,7 +655,7 @@ HWND CreateListView(HWND hWndParent, UINT uId)
 
 	RECT rcl;
 	GetClientRect(hWndParent, &rcl);
-	HWND hWndLV = CreateWindow(WC_LISTVIEW, TEXT("HALLO"), WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_AUTOVSCROLL | LBS_NOTIFY | LVS_REPORT | WS_CLIPSIBLINGS | LVS_AUTOARRANGE | LVS_SHOWSELALWAYS, 450, 0, 500, rcl.bottom - rcl.top, hWndParent, (HMENU)uId, GetModuleHandle(NULL), NULL);
+	HWND hWndLV = CreateWindow(WC_LISTVIEW, TEXT("HALLO"), WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_AUTOVSCROLL | LBS_NOTIFY | LVS_REPORT | WS_CLIPSIBLINGS | LVS_AUTOARRANGE | LVS_SHOWSELALWAYS, 450, 0, 600, rcl.bottom - rcl.top, hWndParent, (HMENU)uId, GetModuleHandle(NULL), NULL);
 
 
 	ListView_SetExtendedListViewStyleEx(hWndLV, 0, LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES | LVS_EX_ONECLICKACTIVATE);
@@ -591,23 +674,53 @@ BOOL WINAPI AddListViewItems(HWND hWndLV, int colNum, int textMaxLen, char** ite
 	lvi.cchTextMax = textMaxLen;
 	lvi.iItem = iLastIndex;
 
-	wchar_t wtext[20];
-	mbstowcs(wtext, item[0], strlen(item[0]) + 1);//Plus null
-	LPWSTR ptr[3];
-	ptr[0]= wtext;
+	//wchar_t wtext[20];
+	//mbstowcs(wtext, item[0], strlen(item[0]) + 1);//Plus null
+	//LPWSTR ptr[2];
+	//ptr[0]= wtext;
 
-	lvi.pszText = ptr[0];// item[0];
+	lvi.pszText = NULL;// item[0];
 	lvi.iSubItem = 0;
 
 	if (ListView_InsertItem(hWndLV, &lvi) == -1)
 		return FALSE;
-	for (int i = 1; i < colNum; i++)
+	for (int i = 0; i < colNum; i++)
 	{
-		mbstowcs(wtext, item[i], strlen(item[i]) + 1);//Plus null
-		ptr[i] = wtext;
-		ListView_SetItemText(hWndLV, iLastIndex, i, ptr[i]/*item[i]*/);
-	}
+		if (item[i] == NULL)
+			item[i] = "none";
+		if (i == 2)
+		{
+			char *ssc;
+			int l = 0;
+			ssc = strstr(item[i], "\\");
+			do {
+				l = strlen(ssc) + 1;
+				item[i] = &item[i][strlen(item[i]) - l + 2];
+				ssc = strstr(item[i], "\\");
+			} while (ssc);
+		}
+			//	mbstowcs(wtext, item[i], strlen(item[i]) + 1);//Plus null
+			//	ptr[i] = wtext;
+			LPWSTR dest = new WCHAR[MAX_PATH];
+			const int codePage = CP_ACP; //CP_UTF8, 1200=utf-16le, 1201=utf-16be; utf-16le is recommended
+			int alen = MultiByteToWideChar(codePage, 0, item[i], -1, NULL, 0);
+		//add sizeof for null, just in case
+		//int destlen = alen + wcslen(b) + sizeof(WCHAR);
+	//	LPWSTR dest = new WCHAR[destlen];
 
+		//add a
+		MultiByteToWideChar(codePage, 0, item[i], -1, dest, alen);
+		ListView_SetItemText(hWndLV, iLastIndex, i, dest);
+		
+
+		//add sizeof for null, just in case
+		/*int destlen = alen + wcslen(b) + sizeof(WCHAR);
+		LPWSTR dest = new WCHAR[destlen];
+
+		//add a
+		MultiByteToWideChar(codePage, 0, a, -1, dest, alen);*/
+	}
+	
 	itemsCount = iLastIndex + 1;
 	return TRUE;
 
