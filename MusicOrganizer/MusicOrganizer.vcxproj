@@ -138,12 +138,33 @@
     <Text Include="ReadMe.txt" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\bass.h" />
+    <ClInclude Include="id3.h" />
+    <ClInclude Include="id3\field.h" />
+    <ClInclude Include="id3\globals.h" />
+    <ClInclude Include="id3\helpers.h" />
+    <ClInclude Include="id3\id3lib_frame.h" />
+    <ClInclude Include="id3\id3lib_streams.h" />
+    <ClInclude Include="id3\id3lib_strings.h" />
+    <ClInclude Include="id3\io_decorators.h" />
+    <ClInclude Include="id3\io_helpers.h" />
+    <ClInclude Include="id3\io_strings.h" />
+    <ClInclude Include="id3\misc_support.h" />
+    <ClInclude Include="id3\reader.h" />
+    <ClInclude Include="id3\readers.h" />
+    <ClInclude Include="id3\sized_types.h" />
+    <ClInclude Include="id3\tag.h" />
+    <ClInclude Include="id3\utils.h" />
+    <ClInclude Include="id3\writer.h" />
+    <ClInclude Include="id3\writers.h" />
+    <ClInclude Include="MP3FileInfo.h" />
     <ClInclude Include="MusicOrganizer.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="MP3FileInfo.cpp" />
     <ClCompile Include="MusicOrganizer.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -158,6 +179,12 @@
   <ItemGroup>
     <Image Include="MusicOrganizer.ico" />
     <Image Include="small.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\bass.dll" />
+    <None Include="id3\id3lib_bitset" />
+    <None Include="id3\Makefile.am" />
+    <None Include="id3\Makefile.in" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -16,6 +16,19 @@
 #define IDC_MYICON				2
 #ifndef IDC_STATIC
 #define IDC_STATIC				-1
+#define ID_BUTTONPLAY           10
+#define ID_BUTTONPAUSE          11
+#define ID_BUTTONSTOP           12
+#define ID_LISTVIEW				13
+#define ID_BUTTONADD			14
+#define ID_BUTTONDELETE         15
+#define ID_TRACKBAR             16
+#define ID_TEXTBOXTITLE         17
+#define ID_TEXTBOXARTIST        18
+#define ID_TEXTBOXALBUM         19
+#define ID_TEXTBOXYEAR          20
+#define ID_TEXTBOXCOMMENT       21
+#define ID_BUTTONTAGS           22
 #endif
 // Следующие стандартные значения для новых объектов
 //
