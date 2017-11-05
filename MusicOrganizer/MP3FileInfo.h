@@ -93,6 +93,7 @@
 
 
       bool Init(const char* cszFilename);
+	  bool Change(const char* cszFilename, char *, char *, char *, char *, char*);
       void Free(void);
       inline bool isOK(void) const { return m_bOK; }
 
@@ -126,7 +127,6 @@
       char* szURL;
 
       void  ShowAllFrames(void);
-
 
     protected:
       bool m_bOK;

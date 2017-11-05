@@ -30,6 +30,7 @@
 
 #include <assert.h>
   #include <stdio.h>
+#include <vector>
 
 
 
@@ -89,7 +90,64 @@
     return m_bOK;
    }
 
+  bool MP3FileInfo::Change(const char* cszFilename, char * title, char * album, char * artist, char * year, char * comment)
+  {
+	  Free();
+	  m_bOK = true;
 
+	  // copy filename
+	  szFilename = new char[strlen(cszFilename) + 1];
+	  sprintf(szFilename, cszFilename);
+
+	  m_id3tag = new ID3_Tag;
+	  m_id3tag->Link(szFilename);
+
+	  /* Fileinfo */
+	  bHasLyrics = m_id3tag->HasLyrics();
+	  bHasV1Tag = m_id3tag->HasV1Tag();
+	  bHasV2Tag = m_id3tag->HasV2Tag();
+	  nFileSize = (int)m_id3tag->GetFileSize();
+
+	  /* Headerinfo */
+	  m_parseHeader();
+
+	  if (!m_bOK) { Free(); return m_bOK; }
+	  std::vector<ID3_FrameID> idVector;
+	  std::vector<char *> attributes;
+	  idVector.push_back(ID3FID_TITLE);
+	  idVector.push_back(ID3FID_ALBUM);
+	  idVector.push_back(ID3FID_LEADARTIST);
+	  idVector.push_back(ID3FID_YEAR);
+	  idVector.push_back(ID3FID_COMMENT);
+	  attributes.push_back(title);
+	  attributes.push_back(album);
+	  attributes.push_back(artist);
+	  attributes.push_back(year);
+	  attributes.push_back(comment);
+	  ID3_Frame* frame = NULL;
+	  ID3_Frame* tempFrame = NULL;
+	  ID3_FrameID frameID;
+	  ID3_Field* field = 0;
+	  for (int i = 0; i < 5; i++)
+	  {
+		  frameID = idVector[i];
+		  frame = m_id3tag->Find(frameID);
+		  if (frame == NULL)
+		  {
+			  tempFrame = new ID3_Frame(idVector[i]);
+			  m_id3tag->AddFrame(tempFrame);
+			  frame = m_id3tag->Find(frameID);
+		  }
+		  if (frame->Contains(ID3FN_TEXT))
+		  {
+			  field = frame->GetField(ID3FN_TEXT);
+			  field->Set(attributes[i]);
+		  }
+	  }
+
+	  m_id3tag->Update();
+	  return m_bOK;
+  }
     /**
       \brief   Free all allocated ressources
 

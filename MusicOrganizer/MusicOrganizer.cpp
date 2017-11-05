@@ -16,27 +16,44 @@
 #include <cstddef>
 #pragma comment(lib,"shell32.lib")
 #include <gdiplus.h>
-using namespace Gdiplus;
+//using namespace Gdiplus;
 #pragma comment(lib,"GdiPlus.lib")
 
 #define ID3LIB_LINKOPTION 3
 #include "id3.h"
-#include "id3/globals.h"
+#include "id3/id3lib_streams.h"
 #include "id3/tag.h"
-#pragma comment(lib,"id3lib.lib")
+
+#include "id3/globals.h"
+#include "id3/field.h"
+#include "id3/helpers.h"
+#include "id3/id3lib_frame.h"
+#include "id3/id3lib_strings.h"
+#include "id3/io_decorators.h"
+#include "id3/io_helpers.h"
+#include "id3/io_strings.h"
+//#include "id3/misc_support.h"
+#include "id3/reader.h"
+#include "id3/readers.h"
+#include "id3/sized_types.h"
+#include "id3/utils.h"
+#include "id3/writer.h"
+#include "id3/writers.h"
+
 #include "MP3FileInfo.h"
 
 
-
-
+#define ID_PIC                          1002
+#define IDB_BITMAP1                     104
 
 #pragma comment(lib,"bass.lib")
 #pragma comment(lib, "ComCtl32.Lib")
+#pragma comment(lib,"id3lib.lib")
 #pragma comment(linker,"/manifestdependency:\"type='win32' \
                         name='Microsoft.Windows.Common-Controls' \
                         version='6.0.0.0' processorArchitecture='*'\
  publicKeyToken='6595b64144ccf1df' language='*'\"")
-//#pragma warning(disable : 4996)
+#pragma warning(disable : 4996)
 MP3FileInfo mp3fi;
 struct id_tag {
 	char title[256];
@@ -46,8 +63,24 @@ struct id_tag {
 	char comment[256];
 };
 #define MAX_LOADSTRING 100
-
+struct
+{
+	char ID[3];
+	char Title[30];
+	char Artist[30];
+	char Album[30];
+	char Year[4];
+	char Comment[30];
+	char Genre;
+}TAG;
 // Глобальные переменные:
+
+HBRUSH hbrush;
+
+BITMAP bm;
+HDC memBit;
+
+
 HINSTANCE hInst;                                // текущий экземпляр
 WCHAR szTitle[MAX_LOADSTRING];                  // Текст строки заголовка
 WCHAR szWindowClass[MAX_LOADSTRING];            // имя класса главного окна
@@ -59,27 +92,19 @@ static HWND hWndLV = NULL;
 int const colNum = 3;
 int const textMaxLen = 20;
 
-//WCHAR szFile[MAX_PATH];
-
 struct sample
 {
 	LPWSTR name;
 } oneSong;
-//std::list<sample> songList;
 std::list<char *> songList;
-struct
-{
-	char ID[3];
-	char Title[30];
-	char Artist[30];
-	char Album[30];
-	char Year[4];
-	char Comment[30];
-	char Genre;
-}TAG;
+
 int itemsCount;
 bool pauseFlag = false;
 int selectedItemIndex;
+/*Bitmap *gpBitmap;	// The bitmap for displaying an image
+Bitmap *bmp;	// Backup Bitmap*/
+HINSTANCE hIns;
+ULONG_PTR gdiplusToken; // GDI Token
 
 HCHANNEL channel;
 HSTREAM stream, streamTemp;
@@ -94,6 +119,9 @@ HWND                CreateListView(HWND, UINT);
 int                 SetListViewColumns(HWND, int, int, char**);
 BOOL WINAPI         AddListViewItems(HWND, int, int, char**);
 
+VOID WINAPI         UpdateListViewItem(HWND, int, char**);
+
+BOOL GetAlbumArt(HWND, HDC, char*);
 
 using namespace std;
 
@@ -159,7 +187,7 @@ ATOM MyRegisterClass(HINSTANCE hInstance)
     wcex.hInstance      = hInstance;
     wcex.hIcon          = LoadIcon(hInstance, MAKEINTRESOURCE(IDI_MUSICORGANIZER));
     wcex.hCursor        = LoadCursor(nullptr, IDC_ARROW);
-    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW+1);
+    wcex.hbrBackground  = (HBRUSH)(COLOR_WINDOW);
     wcex.lpszMenuName   = MAKEINTRESOURCEW(IDC_MUSICORGANIZER);
     wcex.lpszClassName  = (LPWSTR)szWindowClass;
     wcex.hIconSm        = LoadIcon(wcex.hInstance, MAKEINTRESOURCE(IDI_SMALL));
@@ -175,21 +203,20 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    hWnd = CreateWindow(szWindowClass, szTitle, WS_OVERLAPPED | WS_BORDER | WS_SYSMENU,
       CW_USEDEFAULT, 0, 1005, 370, NULL, NULL, hInstance, NULL);
-
-   hwndBtnPlay = CreateWindow(TEXT("BUTTON"), TEXT("Play"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 10, 10, 50, 35, hWnd, (HMENU)ID_BUTTONPLAY,(HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);      
+   hwndBtnPlay = CreateWindow(TEXT("BUTTON"), TEXT("Play"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 10, 10, 50, 35, hWnd, (HMENU)ID_BUTTONPLAY, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
    EnableWindow(hwndBtnPlay, FALSE);
    hwndBtnPause = CreateWindow(TEXT("BUTTON"), TEXT("Pause"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 70, 10, 50, 35, hWnd, (HMENU)ID_BUTTONPAUSE, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
    EnableWindow(hwndBtnPause, FALSE);
-   hwndBtnStop = CreateWindow(TEXT("BUTTON"),TEXT("Stop"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 130, 10, 50, 35, hWnd, (HMENU)ID_BUTTONSTOP, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
+   hwndBtnStop = CreateWindow(TEXT("BUTTON"), TEXT("Stop"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 130, 10, 50, 35, hWnd, (HMENU)ID_BUTTONSTOP, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
    EnableWindow(hwndBtnStop, FALSE);
-   
+
    hwndBtnNext = CreateWindow(TEXT("BUTTON"), TEXT("Next"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 250, 10, 50, 35, hWnd, (HMENU)ID_BUTTONNEXT, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
    EnableWindow(hwndBtnNext, FALSE);
    hwndBtnPrev = CreateWindow(TEXT("BUTTON"), TEXT("Prev"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 190, 10, 50, 35, hWnd, (HMENU)ID_BUTTONPREV, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
    EnableWindow(hwndBtnPrev, FALSE);
    hwndBtnAdd = CreateWindow(TEXT("BUTTON"), TEXT("Add"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 310, 10, 50, 35, hWnd, (HMENU)ID_BUTTONADD, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
 
-   hwndBtnDelete = CreateWindow(TEXT("BUTTON"),TEXT("Delete"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 370, 10, 50, 35, hWnd, (HMENU)ID_BUTTONDELETE, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
+   hwndBtnDelete = CreateWindow(TEXT("BUTTON"), TEXT("Delete"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 370, 10, 50, 35, hWnd, (HMENU)ID_BUTTONDELETE, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
    EnableWindow(hwndBtnDelete, FALSE);
    CreateTrackbar(hWnd, 0, 100);
 
@@ -243,7 +270,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 {
 	int wmId, wmEvent;
 	PAINTSTRUCT ps;
-	HDC hdc;
+	HDC hdc = NULL;
+	HBITMAP hBitmap;
 	char buffer2[1000] = { 0 };
 	wchar_t wtext[250] = { 0 };
 	switch (message)
@@ -271,11 +299,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				auto it = songList.begin();
 
 				char * nx = *std::next(it, selectedItemIndex);
-				//oneSong = *nx;
 				BASS_ChannelStop(stream);
 				BASS_StreamFree(stream);
-				//char buffer2[1000] = { 0 };
-//				wcstombs(buffer2, songList.get_allocator , 1000);
 				stream = BASS_StreamCreateFile(FALSE, nx, 0, 0, 0);
 				if (!stream) {
 					MessageBox(NULL, TEXT("Ошибка потока воспроизведения."), NULL, 0);
@@ -317,7 +342,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			
 			ListView_SetItemState(hWndLV, selectedItemIndex, LVIS_SELECTED, LVIS_SELECTED);
 			ListView_SetItemState(hWndLV, selectedItemIndex - 1, LVIF_STATE, LVIS_SELECTED);
-			//ListView_SetItemState(hWndLV, selectedItemIndex, LVIS_FOCUSED, LVIS_FOCUSED);
 			
 			break;
 		}
@@ -377,9 +401,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				strcpy(temp, buffer2);
 				songList.push_back(temp);
 			}
-
-
-
 			BOOL init = false;
 			id_tag mp3tag;
 			ZeroMemory(&mp3tag, sizeof mp3tag);
@@ -390,10 +411,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				init = TRUE;
 				if (mp3fi.bHasV1Tag || mp3fi.bHasV2Tag)
 				{
-					
 					LPWSTR ptr = wtext;
-					
-					if (mp3fi.szTitle != NULL) {
+
+					if(mp3fi.szTitle != NULL) {
 						mbstowcs(wtext, mp3fi.szTitle, strlen(mp3fi.szTitle) + 1);//Plus null
 						SetWindowText(hwndTBTitle, ptr);
 					}
@@ -417,6 +437,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 					char* item[colNum] = { mp3fi.szTitle, mp3fi.szArtist,mp3fi.szFilename };
 					AddListViewItems(hWndLV, colNum, textMaxLen, item);
+				
 				}
 				else
 				{
@@ -444,7 +465,52 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 			break;
 		}
-		
+		case ID_BUTTONTAGS:
+		{
+			auto it = songList.begin();
+
+			char * nx = *std::next(it, selectedItemIndex);
+
+
+
+
+			LPWSTR ptr = wtext;
+
+				char title[30];
+				GetWindowText(hwndTBTitle, ptr, 30);
+				wcstombs(title, ptr, 30);
+
+				char artist[30];
+				GetWindowText(hwndTBArtist, ptr, 30);
+				wcstombs(artist, ptr, 30);
+
+				char album[30];
+				GetWindowText(hwndTBAlbum, ptr, 30);
+				wcstombs(album, ptr, 30);
+
+				char year[5];
+				GetWindowText(hwndTBYear, ptr, 5);
+				wcstombs(year, ptr, 5);
+
+				char comment[30];
+				GetWindowText(hwndTBComment, ptr, 30);
+				wcstombs(comment, ptr, 30);
+			
+				char* item[colNum] = { title, artist, nx };
+				//AddListViewItems(hWndLV, colNum, textMaxLen, item);
+				UpdateListViewItem(hWndLV, colNum, item);
+
+				
+			
+			
+			id_tag mp3tag;
+			ZeroMemory(&mp3tag, sizeof mp3tag);
+			mp3fi.Change(nx, title, album, artist, year, comment);
+
+			EnableWindow(hwndBtnChangeTags, FALSE);
+			UpdateWindow(hWndLV);
+			break;
+		}
 		case IDM_EXIT:
 			DestroyWindow(hWnd);
 			break;
@@ -699,29 +765,42 @@ BOOL WINAPI AddListViewItems(HWND hWndLV, int colNum, int textMaxLen, char** ite
 				ssc = strstr(item[i], "\\");
 			} while (ssc);
 		}
-			//	mbstowcs(wtext, item[i], strlen(item[i]) + 1);//Plus null
-			//	ptr[i] = wtext;
 			LPWSTR dest = new WCHAR[MAX_PATH];
 			const int codePage = CP_ACP; //CP_UTF8, 1200=utf-16le, 1201=utf-16be; utf-16le is recommended
 			int alen = MultiByteToWideChar(codePage, 0, item[i], -1, NULL, 0);
-		//add sizeof for null, just in case
-		//int destlen = alen + wcslen(b) + sizeof(WCHAR);
-	//	LPWSTR dest = new WCHAR[destlen];
 
 		//add a
 		MultiByteToWideChar(codePage, 0, item[i], -1, dest, alen);
 		ListView_SetItemText(hWndLV, iLastIndex, i, dest);
-		
-
-		//add sizeof for null, just in case
-		/*int destlen = alen + wcslen(b) + sizeof(WCHAR);
-		LPWSTR dest = new WCHAR[destlen];
-
-		//add a
-		MultiByteToWideChar(codePage, 0, a, -1, dest, alen);*/
 	}
 	
 	itemsCount = iLastIndex + 1;
 	return TRUE;
 
+}
+VOID WINAPI UpdateListViewItem(HWND hWndLV, int colNum, char** item)
+{
+	for (int i = 0; i < colNum; i++)
+	{
+		if (item[i] == NULL)
+			item[i] = "";
+		if (i == 2)
+		{
+			char *ssc;
+			int l = 0;
+			ssc = strstr(item[i], "\\");
+			do {
+				l = strlen(ssc) + 1;
+				item[i] = &item[i][strlen(item[i]) - l + 2];
+				ssc = strstr(item[i], "\\");
+			} while (ssc);
+		}
+		LPWSTR dest = new WCHAR[MAX_PATH];
+		const int codePage = CP_ACP; //CP_UTF8, 1200=utf-16le, 1201=utf-16be; utf-16le is recommended
+		int alen = MultiByteToWideChar(codePage, 0, item[i], -1, NULL, 0);
+
+		//add a
+		MultiByteToWideChar(codePage, 0, item[i], -1, dest, alen);
+		ListView_SetItemText(hWndLV, selectedItemIndex, i, dest);
+		}
 }
