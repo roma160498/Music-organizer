@@ -118,8 +118,12 @@ HWND WINAPI         CreateTrackbar(HWND, UINT, UINT);
 HWND                CreateListView(HWND, UINT);
 int                 SetListViewColumns(HWND, int, int, char**);
 BOOL WINAPI         AddListViewItems(HWND, int, int, char**);
+LPWSTR				MBStoWS(char *);
+char*				WStoMBS(LPWSTR);
 
 VOID WINAPI         UpdateListViewItem(HWND, int, char**);
+VOID WINAPI			UpdateEditBoxes();
+VOID WINAPI			ClearEditBoxes();
 
 BOOL GetAlbumArt(HWND, HDC, char*);
 
@@ -341,6 +345,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (selectedItemIndex<itemsCount-1)
 			selectedItemIndex++;
 			pauseFlag = false;
+			UpdateEditBoxes();
 			SendMessage(hWnd, WM_COMMAND, ID_BUTTONPLAY, 0);
 			
 			ListView_SetItemState(hWndLV, selectedItemIndex, LVIS_SELECTED, LVIS_SELECTED);
@@ -355,6 +360,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (selectedItemIndex>0)
 			selectedItemIndex--;
 			pauseFlag = false;
+			UpdateEditBoxes();
 			SendMessage(hWnd, WM_COMMAND, ID_BUTTONPLAY, 0);
 			ListView_SetItemState(hWndLV, selectedItemIndex, LVIS_SELECTED, LVIS_SELECTED);
 			ListView_SetItemState(hWndLV, selectedItemIndex + 1, LVIF_STATE, LVIS_SELECTED);
@@ -399,9 +405,22 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT;
 			if (GetOpenFileName(&ofn) == TRUE)
 			{
-				wcstombs(buffer2, ofn.lpstrFile, 1000);
+			/*	size_t wcsChars = wcslen(ofn.lpstrFile);
+				size_t sizeRequired = WideCharToMultiByte(950, 0, ofn.lpstrFile, -1,
+					NULL, 0, NULL, NULL);
+				sizeRequired = WideCharToMultiByte(CP_ACP,                // ANSI code page
+					WC_COMPOSITECHECK,     // Check for accented characters
+					ofn.lpstrFile,         // Source Unicode string
+					-1,                    // -1 means string is zero-terminated
+					buffer2,          // Destination char string
+					sizeof(buffer2),  // Size of buffer
+					NULL,                  // No default character
+					NULL);
+					*/
+
+//				wcstombs(buffer2, ofn.lpstrFile, 1000);
 				char* temp = (char*)malloc(1000 + 1);
-				strcpy(temp, buffer2);
+				strcpy(temp, WStoMBS(ofn.lpstrFile));
 				songList.push_back(temp);
 			}
 			BOOL init = false;
@@ -410,7 +429,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			
 			if (mp3fi.Init(buffer2))
 			{
-
+				ClearEditBoxes();
 				init = TRUE;
 				if (mp3fi.bHasV1Tag || mp3fi.bHasV2Tag)
 				{
@@ -451,7 +470,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			else
 			{
 				MessageBox(hWnd, TEXT("Unable to initialize MP3Tag class"), TEXT("Error"), MB_ICONERROR);
-				char* item[colNum] = { NULL, NULL,mp3fi.szFilename };
+				char* item[colNum] = { NULL, NULL,NULL };
 				AddListViewItems(hWndLV, colNum, textMaxLen, item);
 			}
 
@@ -526,7 +545,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			}
 			else
 			{
-				width = 930;
+				width = 1005;
 				SendMessage(hwndBtnOpenClose, WM_SETTEXT, 0, (LPARAM)TEXT("Close"));
 			}
 			openFlag = !openFlag;
@@ -570,86 +589,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			selectedItemIndex = ListView_GetNextItem(hWndLV, -1, LVNI_ALL | LVNI_SELECTED);
 			if (selectedItemIndex >= 0)
 			{
-				BOOL init = false;
-				id_tag mp3tag;
-				ZeroMemory(&mp3tag, sizeof mp3tag);
-				
-				auto it = songList.begin();
-
-				char * nx = *std::next(it, selectedItemIndex);
-				if (mp3fi.Init(nx))
-				{
-
-					init = TRUE;
-					if (mp3fi.bHasV1Tag || mp3fi.bHasV2Tag)
-					{
-
-						LPWSTR ptr = wtext;
-
-						if (mp3fi.szTitle != NULL) {
-							mbstowcs(wtext, mp3fi.szTitle, strlen(mp3fi.szTitle) + 1);//Plus null
-							SetWindowText(hwndTBTitle, ptr);
-						}
-						if (mp3fi.szArtist != NULL) {
-							mbstowcs(wtext, mp3fi.szArtist, strlen(mp3fi.szArtist) + 1);//Plus null
-							SetWindowText(hwndTBArtist, ptr);
-						}
-						if (mp3fi.szAlbum != NULL) {
-							mbstowcs(wtext, mp3fi.szAlbum, strlen(mp3fi.szAlbum) + 1);//Plus null
-							SetWindowText(hwndTBAlbum, ptr);
-						}
-
-						if (mp3fi.szYear != NULL) {
-							mbstowcs(wtext, mp3fi.szYear, strlen(mp3fi.szYear) + 1);//Plus null
-							SetWindowText(hwndTBYear, ptr);
-						}
-						if (mp3fi.szComment != NULL) {
-							mbstowcs(wtext, mp3fi.szComment, strlen(mp3fi.szComment) + 1);//Plus null
-							SetWindowText(hwndTBComment, ptr);
-						}
-
-					//	char* item[colNum] = { mp3fi.szTitle, mp3fi.szArtist,mp3fi.szFilename };
-					//	AddListViewItems(hWndLV, colNum, textMaxLen, item);
-					}
-					else
-					{
-						//char* item[colNum] = { NULL, NULL,mp3fi.szFilename };
-						//AddListViewItems(hWndLV, colNum, textMaxLen, item);
-					}
-				}
-				else
-				{
-					//MessageBox(hWnd, TEXT("Unable to initialize MP3Tag class"), TEXT("Error"), MB_ICONERROR);
-					//char* item[colNum] = { NULL, NULL,mp3fi.szFilename };
-					//AddListViewItems(hWndLV, colNum, textMaxLen, item);
-				}
-
-				if (init) {
-					mp3fi.Free();
-					init = FALSE;
-				}
-				/*auto it = songList.begin();
-
-				char * nx = *std::next(it, selectedItemIndex);
-				//oneSong = *nx;
-				LPOFSTRUCT lpOpenStruct;
-				HANDLE handletemp = CreateFile(oneSong.name, GENERIC_READ, 0, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-				if (handletemp != INVALID_HANDLE_VALUE)
-				{
-					SetFilePointer(handletemp, -128, NULL, FILE_END);
-					if (ReadFile(handletemp, &TAG, 128, NULL, NULL) == 0) {
-						MessageBox(NULL, TEXT("Ошибка чтения."), NULL, 0);
-						CloseHandle(handletemp);
-						return 1;
-					}
-					/*SetWindowText(hwndTBTitle, TAG.Title);
-					SetWindowText(hwndTBArtist, TAG.Artist);
-					SetWindowText(hwndTBAlbum, TAG.Album);
-					SetWindowText(hwndTBYear, TAG.Year);
-					SetWindowText(hwndTBComment, TAG.Comment);*/
-			
-			/*	}
-				CloseHandle(handletemp);*/
+				UpdateEditBoxes();
 				EnableWindow(hwndBtnChangeTags, TRUE);
 				EnableWindow(hwndBtnPlay, TRUE);
 				EnableWindow(hwndBtnNext, TRUE);
@@ -772,9 +712,8 @@ BOOL WINAPI AddListViewItems(HWND hWndLV, int colNum, int textMaxLen, char** ite
 		return FALSE;
 	for (int i = 0; i < colNum; i++)
 	{
-		if (item[i] == NULL)
-			item[i] = "none";
-		if (i == 2)
+		
+		if (i == 2 && item[i] != NULL)
 		{
 			char *ssc;
 			int l = 0;
@@ -785,13 +724,15 @@ BOOL WINAPI AddListViewItems(HWND hWndLV, int colNum, int textMaxLen, char** ite
 				ssc = strstr(item[i], "\\");
 			} while (ssc);
 		}
-			LPWSTR dest = new WCHAR[MAX_PATH];
+		if (item[i] == NULL)
+			item[i] = "none";
+		/*	LPWSTR dest = new WCHAR[MAX_PATH];
 			const int codePage = CP_ACP; //CP_UTF8, 1200=utf-16le, 1201=utf-16be; utf-16le is recommended
 			int alen = MultiByteToWideChar(codePage, 0, item[i], -1, NULL, 0);
 
 		//add a
-		MultiByteToWideChar(codePage, 0, item[i], -1, dest, alen);
-		ListView_SetItemText(hWndLV, iLastIndex, i, dest);
+		MultiByteToWideChar(codePage, 0, item[i], -1, dest, alen);*/
+		ListView_SetItemText(hWndLV, iLastIndex, i, MBStoWS(item[i]));
 	}
 	
 	itemsCount = iLastIndex + 1;
@@ -823,4 +764,101 @@ VOID WINAPI UpdateListViewItem(HWND hWndLV, int colNum, char** item)
 		MultiByteToWideChar(codePage, 0, item[i], -1, dest, alen);
 		ListView_SetItemText(hWndLV, selectedItemIndex, i, dest);
 		}
+}
+
+VOID WINAPI UpdateEditBoxes()
+{
+	BOOL init = false;
+	id_tag mp3tag;
+	wchar_t wtext[250] = { 0 };
+	ZeroMemory(&mp3tag, sizeof mp3tag);
+
+	auto it = songList.begin();
+
+	char * nx = *std::next(it, selectedItemIndex);
+	if (mp3fi.Init(nx))
+	{
+		ClearEditBoxes();
+		init = TRUE;
+		if (mp3fi.bHasV1Tag || mp3fi.bHasV2Tag)
+		{
+
+			LPWSTR ptr = wtext;
+
+			if (mp3fi.szTitle != NULL) {
+				mbstowcs(wtext, mp3fi.szTitle, strlen(mp3fi.szTitle) + 1);//Plus null
+				SetWindowText(hwndTBTitle, ptr);
+			}
+			if (mp3fi.szArtist != NULL) {
+				mbstowcs(wtext, mp3fi.szArtist, strlen(mp3fi.szArtist) + 1);//Plus null
+				SetWindowText(hwndTBArtist, ptr);
+			}
+			if (mp3fi.szAlbum != NULL) {
+				mbstowcs(wtext, mp3fi.szAlbum, strlen(mp3fi.szAlbum) + 1);//Plus null
+				SetWindowText(hwndTBAlbum, ptr);
+			}
+
+			if (mp3fi.szYear != NULL) {
+				mbstowcs(wtext, mp3fi.szYear, strlen(mp3fi.szYear) + 1);//Plus null
+				SetWindowText(hwndTBYear, ptr);
+			}
+			if (mp3fi.szComment != NULL) {
+				mbstowcs(wtext, mp3fi.szComment, strlen(mp3fi.szComment) + 1);//Plus null
+				SetWindowText(hwndTBComment, ptr);
+			}
+
+			//	char* item[colNum] = { mp3fi.szTitle, mp3fi.szArtist,mp3fi.szFilename };
+			//	AddListViewItems(hWndLV, colNum, textMaxLen, item);
+		}
+		else
+		{
+			//char* item[colNum] = { NULL, NULL,mp3fi.szFilename };
+			//AddListViewItems(hWndLV, colNum, textMaxLen, item);
+		}
+	}
+	else
+	{
+		//MessageBox(hWnd, TEXT("Unable to initialize MP3Tag class"), TEXT("Error"), MB_ICONERROR);
+		//char* item[colNum] = { NULL, NULL,mp3fi.szFilename };
+		//AddListViewItems(hWndLV, colNum, textMaxLen, item);
+	}
+
+	if (init) {
+		mp3fi.Free();
+		init = FALSE;
+	}
+}
+
+VOID WINAPI ClearEditBoxes()
+{
+	SetWindowText(hwndTBTitle, TEXT(""));
+	SetWindowText(hwndTBArtist, TEXT(""));
+	SetWindowText(hwndTBAlbum, TEXT(""));
+	SetWindowText(hwndTBYear, TEXT(""));
+	SetWindowText(hwndTBComment, TEXT(""));
+}
+
+char* WStoMBS(LPWSTR source)
+{
+	char buffer2[MAX_PATH] = { 0 }; 
+	size_t sizeRequired = WideCharToMultiByte(950, 0, source, -1,
+		NULL, 0, NULL, NULL);
+	sizeRequired = WideCharToMultiByte(CP_ACP,                // ANSI code page
+		WC_COMPOSITECHECK,     // Check for accented characters
+		source,         // Source Unicode string
+		-1,                    // -1 means string is zero-terminated
+		buffer2,          // Destination char string
+		sizeof(buffer2),  // Size of buffer
+		NULL,                  // No default character
+		NULL);
+	return buffer2;
+}
+
+LPWSTR MBStoWS(char * source)
+{
+	LPWSTR dest = new WCHAR[MAX_PATH];
+	const int codePage = CP_ACP;
+	int alen = MultiByteToWideChar(codePage, 0, source, -1, NULL, 0);
+	MultiByteToWideChar(codePage, 0, source, -1, dest, alen);
+	return dest;
 }
