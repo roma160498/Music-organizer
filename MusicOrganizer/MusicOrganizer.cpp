@@ -284,33 +284,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 	switch (message)
 	{
 	case WM_CREATE:
+	{
 		BASS_SetVolume(100);
 		break;
-
+	}
 	case WM_COMMAND:
 		wmId = LOWORD(wParam);
 		wmEvent = HIWORD(wParam);
-
-		
 		switch (wmId)
 		{
 		case ID_BUTTONPLAY:
 		{
 			if (!pauseFlag)
 			{
-
 				if (songList.empty()) {
-					MessageBox(NULL, TEXT("Добавьте песню."), NULL, 0);
+					MessageBox(NULL, TEXT("Please, add song to list."), NULL, 0);
 					return 1;
 				}
 				auto it = songList.begin();
-
 				char * nx = *std::next(it, selectedItemIndex);
 				BASS_ChannelStop(stream);
 				BASS_StreamFree(stream);
 				stream = BASS_StreamCreateFile(FALSE, nx, 0, 0, 0);
 				if (!stream) {
-					MessageBox(NULL, TEXT("Ошибка потока воспроизведения."), NULL, 0);
+					MessageBox(NULL, TEXT("Error."), NULL, 0);
 					return 1;
 				}
 			}
@@ -403,23 +400,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			ofn.nMaxFileTitle = 0;
 			ofn.lpstrInitialDir = NULL;
 			ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT;
+			char* temp;
 			if (GetOpenFileName(&ofn) == TRUE)
 			{
-			/*	size_t wcsChars = wcslen(ofn.lpstrFile);
-				size_t sizeRequired = WideCharToMultiByte(950, 0, ofn.lpstrFile, -1,
-					NULL, 0, NULL, NULL);
-				sizeRequired = WideCharToMultiByte(CP_ACP,                // ANSI code page
-					WC_COMPOSITECHECK,     // Check for accented characters
-					ofn.lpstrFile,         // Source Unicode string
-					-1,                    // -1 means string is zero-terminated
-					buffer2,          // Destination char string
-					sizeof(buffer2),  // Size of buffer
-					NULL,                  // No default character
-					NULL);
-					*/
-
-//				wcstombs(buffer2, ofn.lpstrFile, 1000);
-				char* temp = (char*)malloc(1000 + 1);
+				temp = (char*)malloc(1000 + 1);
 				strcpy(temp, WStoMBS(ofn.lpstrFile));
 				songList.push_back(temp);
 			}
@@ -427,7 +411,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			id_tag mp3tag;
 			ZeroMemory(&mp3tag, sizeof mp3tag);
 			
-			if (mp3fi.Init(buffer2))
+			if (mp3fi.Init(temp))
 			{
 				ClearEditBoxes();
 				init = TRUE;
@@ -436,25 +420,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					LPWSTR ptr = wtext;
 
 					if(mp3fi.szTitle != NULL) {
-						mbstowcs(wtext, mp3fi.szTitle, strlen(mp3fi.szTitle) + 1);//Plus null
-						SetWindowText(hwndTBTitle, ptr);
+						//mbstowcs(wtext, mp3fi.szTitle, strlen(mp3fi.szTitle) + 1);//Plus null
+						SetWindowText(hwndTBTitle, MBStoWS(mp3fi.szTitle));
 					}
 					if (mp3fi.szArtist != NULL) {
-						mbstowcs(wtext, mp3fi.szArtist, strlen(mp3fi.szArtist) + 1);//Plus null
-						SetWindowText(hwndTBArtist, ptr);
+						//mbstowcs(wtext, mp3fi.szArtist, strlen(mp3fi.szArtist) + 1);//Plus null
+						SetWindowText(hwndTBArtist, MBStoWS(mp3fi.szArtist));
 					}
 					if (mp3fi.szAlbum != NULL) {
-						mbstowcs(wtext, mp3fi.szAlbum, strlen(mp3fi.szAlbum) + 1);//Plus null
-						SetWindowText(hwndTBAlbum, ptr);
+						//mbstowcs(wtext, mp3fi.szAlbum, strlen(mp3fi.szAlbum) + 1);//Plus null
+						SetWindowText(hwndTBAlbum, MBStoWS(mp3fi.szAlbum));
 					}
 
 					if (mp3fi.szYear != NULL) {
-						mbstowcs(wtext, mp3fi.szYear, strlen(mp3fi.szYear) + 1);//Plus null
-						SetWindowText(hwndTBYear, ptr);
+						//mbstowcs(wtext, mp3fi.szYear, strlen(mp3fi.szYear) + 1);//Plus null
+						SetWindowText(hwndTBYear, MBStoWS(mp3fi.szYear));
 					}
 					if (mp3fi.szComment != NULL) {
-						mbstowcs(wtext, mp3fi.szComment, strlen(mp3fi.szComment) + 1);//Plus null
-						SetWindowText(hwndTBComment, ptr);
+						//mbstowcs(wtext, mp3fi.szComment, strlen(mp3fi.szComment) + 1);//Plus null
+						SetWindowText(hwndTBComment, MBStoWS(mp3fi.szComment));
 					}
 
 					char* item[colNum] = { mp3fi.szTitle, mp3fi.szArtist,mp3fi.szFilename };
@@ -479,12 +463,6 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				init = FALSE;
 			}
 
-
-
-
-
-		
-
 			break;
 		}
 		case ID_BUTTONTAGS:
@@ -500,26 +478,26 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 				char title[30];
 				GetWindowText(hwndTBTitle, ptr, 30);
-				wcstombs(title, ptr, 30);
+				//temp = (char*)malloc(1000 + 1);
+				strcpy(title, WStoMBS(ptr));
 
 				char artist[30];
 				GetWindowText(hwndTBArtist, ptr, 30);
-				wcstombs(artist, ptr, 30);
+				strcpy(artist, WStoMBS(ptr));
 
 				char album[30];
 				GetWindowText(hwndTBAlbum, ptr, 30);
-				wcstombs(album, ptr, 30);
+				strcpy(album, WStoMBS(ptr));
 
 				char year[5];
 				GetWindowText(hwndTBYear, ptr, 5);
-				wcstombs(year, ptr, 5);
+				strcpy(year, WStoMBS(ptr));
 
 				char comment[30];
 				GetWindowText(hwndTBComment, ptr, 30);
-				wcstombs(comment, ptr, 30);
+				strcpy(comment, WStoMBS(ptr));
 			
 				char* item[colNum] = { title, artist, nx };
-				//AddListViewItems(hWndLV, colNum, textMaxLen, item);
 				UpdateListViewItem(hWndLV, colNum, item);
 
 				
@@ -657,14 +635,14 @@ int SetListViewColumns(HWND hWndLV, int colNum, int textMaxLen, char** header)
 	lvc.mask = LVCF_TEXT | LVCF_WIDTH;
 	//lvc.cx = 495 / colNum;
 	lvc.cchTextMax = textMaxLen;
-	wchar_t wtext[15];
-	LPWSTR ptr = wtext;
+	//wchar_t wtext[15];
+	//LPWSTR ptr = wtext;
 
 	
 	for (int i = 0; i < colNum; i++)
 	{
-		mbstowcs(wtext, header[i], strlen(header[i]) + 1);//Plus null
-		lvc.pszText = wtext;// header[i];
+		//mbstowcs(wtext, header[i], strlen(header[i]) + 1);//Plus null
+		lvc.pszText = MBStoWS(header[i]);// header[i];
 		index = ListView_InsertColumn(hWndLV, i, &lvc);
 		
 		if (index == -1)
@@ -786,25 +764,25 @@ VOID WINAPI UpdateEditBoxes()
 			LPWSTR ptr = wtext;
 
 			if (mp3fi.szTitle != NULL) {
-				mbstowcs(wtext, mp3fi.szTitle, strlen(mp3fi.szTitle) + 1);//Plus null
-				SetWindowText(hwndTBTitle, ptr);
+				//mbstowcs(wtext, mp3fi.szTitle, strlen(mp3fi.szTitle) + 1);//Plus null
+				SetWindowText(hwndTBTitle, MBStoWS(mp3fi.szTitle));
 			}
 			if (mp3fi.szArtist != NULL) {
-				mbstowcs(wtext, mp3fi.szArtist, strlen(mp3fi.szArtist) + 1);//Plus null
-				SetWindowText(hwndTBArtist, ptr);
+				//mbstowcs(wtext, mp3fi.szArtist, strlen(mp3fi.szArtist) + 1);//Plus null
+				SetWindowText(hwndTBArtist, MBStoWS(mp3fi.szArtist));
 			}
 			if (mp3fi.szAlbum != NULL) {
-				mbstowcs(wtext, mp3fi.szAlbum, strlen(mp3fi.szAlbum) + 1);//Plus null
-				SetWindowText(hwndTBAlbum, ptr);
+				//mbstowcs(wtext, mp3fi.szAlbum, strlen(mp3fi.szAlbum) + 1);//Plus null
+				SetWindowText(hwndTBAlbum, MBStoWS(mp3fi.szAlbum));
 			}
 
 			if (mp3fi.szYear != NULL) {
-				mbstowcs(wtext, mp3fi.szYear, strlen(mp3fi.szYear) + 1);//Plus null
-				SetWindowText(hwndTBYear, ptr);
+				//mbstowcs(wtext, mp3fi.szYear, strlen(mp3fi.szYear) + 1);//Plus null
+				SetWindowText(hwndTBYear, MBStoWS(mp3fi.szYear));
 			}
 			if (mp3fi.szComment != NULL) {
-				mbstowcs(wtext, mp3fi.szComment, strlen(mp3fi.szComment) + 1);//Plus null
-				SetWindowText(hwndTBComment, ptr);
+				//mbstowcs(wtext, mp3fi.szComment, strlen(mp3fi.szComment) + 1);//Plus null
+				SetWindowText(hwndTBComment, MBStoWS(mp3fi.szComment));
 			}
 
 			//	char* item[colNum] = { mp3fi.szTitle, mp3fi.szArtist,mp3fi.szFilename };
