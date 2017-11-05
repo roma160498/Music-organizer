@@ -85,13 +85,13 @@ HINSTANCE hInst;                                // текущий экземпляр
 WCHAR szTitle[MAX_LOADSTRING];                  // Текст строки заголовка
 WCHAR szWindowClass[MAX_LOADSTRING];            // имя класса главного окна
 
-HWND hwndBtnPlay, hwndBtnPause, hwndBtnStop, hwndBtnDelete, hwndTrack, hwndLabelVol, hwndTBTitle, hwndBtnAdd, hwndBtnPrev, hwndBtnNext;
+HWND hwndBtnPlay, hwndBtnPause, hwndBtnStop, hwndBtnDelete, hwndTrack, hwndLabelVol, hwndTBTitle, hwndBtnAdd, hwndBtnPrev, hwndBtnNext, hwndBtnOpenClose;
 HWND hwndTBArtist, hwndTBAlbum, hwndTBYear, hwndTBComment, hwndLabelTitle, hwndLabelArtist, hwndLabelAlbum;
 HWND hwndLabelYear, hwndLabelComment, hwndBtnChangeTags;
 static HWND hWndLV = NULL;
 int const colNum = 3;
 int const textMaxLen = 20;
-
+BOOL openFlag = true;
 struct sample
 {
 	LPWSTR name;
@@ -218,26 +218,29 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 
    hwndBtnDelete = CreateWindow(TEXT("BUTTON"), TEXT("Delete"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 370, 10, 50, 35, hWnd, (HMENU)ID_BUTTONDELETE, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
    EnableWindow(hwndBtnDelete, FALSE);
+  
+   hwndBtnOpenClose = CreateWindow(TEXT("BUTTON"), TEXT("Close"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 370, 55, 50, 25, hWnd, (HMENU)ID_BUTTONCLOP, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
+
    CreateTrackbar(hWnd, 0, 100);
 
    hwndLabelVol = CreateWindow(TEXT("static"), TEXT("Volume"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 10, 55, 50, 15, hWnd, (HMENU)(501), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
 
-   hwndLabelTitle = CreateWindow(TEXT("static"), TEXT("Title [30]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 80, 55, 57, 17, hWnd, (HMENU)(502), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
-   hwndTBTitle = CreateWindow(TEXT("Edit"), NULL, WS_BORDER | WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL, 175, 55, 180, 20, hWnd, (HMENU)ID_TEXTBOXTITLE, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), 0);
+   hwndLabelTitle = CreateWindow(TEXT("static"), TEXT("Title [30]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 10, 85, 57, 17, hWnd, (HMENU)(502), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
+   hwndTBTitle = CreateWindow(TEXT("Edit"), NULL, WS_BORDER | WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL, 110, 85, 310, 20, hWnd, (HMENU)ID_TEXTBOXTITLE, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), 0);
 
-   hwndLabelArtist = CreateWindow(TEXT("static"), TEXT("Artist [30]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 80, 85, 65, 17, hWnd, (HMENU)(503), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
-   hwndTBArtist = CreateWindow(TEXT("Edit"), NULL, WS_BORDER | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 175, 85, 180, 20, hWnd, (HMENU)ID_TEXTBOXARTIST, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), 0);
+   hwndLabelArtist = CreateWindow(TEXT("static"), TEXT("Artist [30]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 10, 115, 65, 17, hWnd, (HMENU)(503), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
+   hwndTBArtist = CreateWindow(TEXT("Edit"), NULL, WS_BORDER | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 110, 115, 310, 20, hWnd, (HMENU)ID_TEXTBOXARTIST, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), 0);
 
-   hwndLabelAlbum = CreateWindow(TEXT("static"), TEXT("Album [30]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 80, 115, 70, 17, hWnd, (HMENU)(504), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
-   hwndTBAlbum = CreateWindow(TEXT("Edit"), NULL, WS_BORDER | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 175, 115, 180, 20, hWnd, (HMENU)ID_TEXTBOXALBUM, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), 0);
+   hwndLabelAlbum = CreateWindow(TEXT("static"), TEXT("Album [30]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 10, 145, 70, 17, hWnd, (HMENU)(504), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
+   hwndTBAlbum = CreateWindow(TEXT("Edit"), NULL, WS_BORDER | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 110, 145, 310, 20, hWnd, (HMENU)ID_TEXTBOXALBUM, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), 0);
 
-   hwndLabelYear = CreateWindow(TEXT("static"), TEXT("Year [4]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 80, 145, 52, 17, hWnd, (HMENU)(505), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
-   hwndTBYear = CreateWindow(TEXT("Edit"), NULL, WS_BORDER | WS_CHILD | WS_VISIBLE, 175, 145, 180, 20, hWnd, (HMENU)ID_TEXTBOXYEAR, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), 0);
+   hwndLabelYear = CreateWindow(TEXT("static"), TEXT("Year [4]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 10, 175, 52, 17, hWnd, (HMENU)(505), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
+   hwndTBYear = CreateWindow(TEXT("Edit"), NULL, WS_BORDER | WS_CHILD | WS_VISIBLE, 110, 175, 310, 20, hWnd, (HMENU)ID_TEXTBOXYEAR, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), 0);
 
-   hwndLabelComment = CreateWindow(TEXT("static"), TEXT("Comment [30]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 80, 175, 90, 17, hWnd, (HMENU)(506), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
-   hwndTBComment = CreateWindow(TEXT("Edit"), NULL, WS_BORDER | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 175, 175, 180, 20, hWnd, (HMENU)ID_TEXTBOXCOMMENT, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), 0);
+   hwndLabelComment = CreateWindow(TEXT("static"), TEXT("Comment [30]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 10, 205, 90, 17, hWnd, (HMENU)(506), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
+   hwndTBComment = CreateWindow(TEXT("Edit"), NULL, WS_BORDER | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 110, 205, 310, 20, hWnd, (HMENU)ID_TEXTBOXCOMMENT, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), 0);
 
-   hwndBtnChangeTags = CreateWindow(TEXT("BUTTON"), TEXT("Change tags"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 80, 220, 90, 35, hWnd, (HMENU)ID_BUTTONTAGS, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
+   hwndBtnChangeTags = CreateWindow(TEXT("BUTTON"), TEXT("Change tags"), WS_TABSTOP | WS_VISIBLE | WS_CHILD | BS_DEFPUSHBUTTON, 10, 235, 90, 35, hWnd, (HMENU)ID_BUTTONTAGS, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
    EnableWindow(hwndBtnChangeTags, FALSE);
 
    SendMessage(hwndTBTitle, EM_LIMITTEXT, 30, 0);
@@ -511,6 +514,25 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			UpdateWindow(hWndLV);
 			break;
 		}
+		case ID_BUTTONCLOP:
+		{
+			RECT rect;
+			int width;
+			GetWindowRect(hWnd, &rect);
+			if (openFlag)
+			{
+				width = 450;
+				SendMessage(hwndBtnOpenClose, WM_SETTEXT, 0, (LPARAM)TEXT("Open"));
+			}
+			else
+			{
+				width = 930;
+				SendMessage(hwndBtnOpenClose, WM_SETTEXT, 0, (LPARAM)TEXT("Close"));
+			}
+			openFlag = !openFlag;
+			MoveWindow(hWnd, rect.left,rect.top, width, 370, TRUE);
+			break;
+		}
 		case IDM_EXIT:
 			DestroyWindow(hWnd);
 			break;
@@ -518,13 +540,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			return DefWindowProc(hWnd, message, wParam, lParam);
 		}
 		break;
-	case WM_VSCROLL:
+	case WM_HSCROLL:
 			switch (LOWORD(wParam)) {
 			case TB_THUMBTRACK:
 			case TB_THUMBPOSITION:
 				if (hwndTrack == (HWND)lParam) {
-					float dwPos = SendMessage(hwndTrack, TBM_GETPOS, 0, 0);
-					float volume = 1 - (dwPos * 0.01);
+					float dwPos = SendMessage(hwndTrack, TBM_GETPOS, 0, 100);
+					float volume = 1 - ((100-dwPos) * 0.01);
 					BASS_SetVolume(volume);
 				}
 				break;
@@ -551,6 +573,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				BOOL init = false;
 				id_tag mp3tag;
 				ZeroMemory(&mp3tag, sizeof mp3tag);
+				
 				auto it = songList.begin();
 
 				char * nx = *std::next(it, selectedItemIndex);
@@ -635,6 +658,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				BASS_ChannelStop(stream);
 				BASS_StreamFree(stream);
 				pauseFlag = false;
+				SendMessage(hWnd, WM_COMMAND, ID_BUTTONPLAY, 0);
+				pauseFlag = false;
 			}
 		}
 		break;
@@ -670,11 +695,11 @@ INT_PTR CALLBACK About(HWND hDlg, UINT message, WPARAM wParam, LPARAM lParam)
 HWND WINAPI CreateTrackbar(HWND hWnd, UINT iMin, UINT iMax)
 {
 
-	hwndTrack = CreateWindowEx(0, TRACKBAR_CLASS, TEXT("Trackbar Control"), WS_CHILD | WS_VISIBLE | TBS_AUTOTICKS | TBS_ENABLESELRANGE | TBS_VERT,
-		15, 80, 30, 200, hWnd, (HMENU)ID_TRACKBAR, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
+	hwndTrack = CreateWindowEx(0, TRACKBAR_CLASS, TEXT("Trackbar Control"), WS_CHILD | WS_VISIBLE | TBS_AUTOTICKS | TBS_ENABLESELRANGE | TBS_HORZ,
+		100, 55, 200, 30, hWnd, (HMENU)ID_TRACKBAR, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
 	SendMessage(hwndTrack, TBM_SETRANGE, (WPARAM)TRUE, (LPARAM)MAKELONG(iMin, iMax));
 	SendMessage(hwndTrack, TBM_SETPAGESIZE, 0, (LPARAM)2);
-
+	SendMessage(hwndTrack, TBM_SETPOS, 1, 100);
 
 	SetFocus(hwndTrack);
 
@@ -739,11 +764,6 @@ BOOL WINAPI AddListViewItems(HWND hWndLV, int colNum, int textMaxLen, char** ite
 	lvi.mask = LVIF_TEXT;
 	lvi.cchTextMax = textMaxLen;
 	lvi.iItem = iLastIndex;
-
-	//wchar_t wtext[20];
-	//mbstowcs(wtext, item[0], strlen(item[0]) + 1);//Plus null
-	//LPWSTR ptr[2];
-	//ptr[0]= wtext;
 
 	lvi.pszText = NULL;// item[0];
 	lvi.iSubItem = 0;

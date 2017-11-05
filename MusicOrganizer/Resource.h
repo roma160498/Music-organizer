@@ -31,6 +31,7 @@
 #define ID_BUTTONTAGS           22
 #define ID_BUTTONNEXT           24
 #define ID_BUTTONPREV           23
+#define ID_BUTTONCLOP           25
 #endif
 // Следующие стандартные значения для новых объектов
 //

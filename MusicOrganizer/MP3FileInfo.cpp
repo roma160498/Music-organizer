@@ -141,6 +141,7 @@
 		  if (frame->Contains(ID3FN_TEXT))
 		  {
 			  field = frame->GetField(ID3FN_TEXT);
+			  field->SetEncoding(ID3TE_ISO8859_1);
 			  field->Set(attributes[i]);
 		  }
 	  }
