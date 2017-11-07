@@ -33,6 +33,8 @@
 #define ID_BUTTONPREV           23
 #define ID_BUTTONCLOP           25
 #define ID_BUTTONSEARCH         26
+#define ID_RADBUTSINGER			27
+#define ID_RADBUTALBUM			28
 #endif
 // Следующие стандартные значения для новых объектов
 //
