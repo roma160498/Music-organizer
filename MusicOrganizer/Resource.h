@@ -35,6 +35,9 @@
 #define ID_BUTTONSEARCH         26
 #define ID_RADBUTSINGER			27
 #define ID_RADBUTALBUM			28
+#define ID_EXIT					29
+#define ID_INFOBUTTON			30
+#define ID_HELPBUTTON			31
 #endif
 // Следующие стандартные значения для новых объектов
 //

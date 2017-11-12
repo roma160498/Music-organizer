@@ -117,9 +117,6 @@
     <Image Include="MusicOrganizer.ico">
       <Filter>Файлы ресурсов</Filter>
     </Image>
-    <Image Include="6.bmp">
-      <Filter>Файлы ресурсов</Filter>
-    </Image>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\bass.dll">

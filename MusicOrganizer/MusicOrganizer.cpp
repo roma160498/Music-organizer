@@ -1,6 +1,3 @@
-// MusicOrganizer.cpp: определяет точку входа для приложения.
-//
-
 #include "stdafx.h"
 #include "windows.h"
 
@@ -16,9 +13,6 @@
 #include <cstddef>
 #include <vector>
 #pragma comment(lib,"shell32.lib")
-#include <gdiplus.h>
-//using namespace Gdiplus;
-#pragma comment(lib,"GdiPlus.lib")
 
 #define ID3LIB_LINKOPTION 3
 #include "id3.h"
@@ -120,12 +114,11 @@ int                 SetListViewColumns(HWND, int, int, char**);
 BOOL WINAPI         AddListViewItems(HWND, int, int, char**);
 LPWSTR				MBStoWS(char *);
 char*				WStoMBS(LPWSTR);
-
+void				AddMenus(HWND);
 VOID WINAPI         UpdateListViewItem(HWND, int, char**);
 VOID WINAPI			UpdateEditBoxes();
 VOID WINAPI			ClearEditBoxes();
 
-BOOL GetAlbumArt(HWND, HDC, char*);
 
 using namespace std;
 
@@ -268,7 +261,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
    if ((hWndLV = CreateListView(hWnd, ID_LISTVIEW)) == NULL)
 	   MessageBox(NULL, TEXT("Невозможно создать элемент ListView"), TEXT("Ошибка"), MB_OK);
    SetListViewColumns(hWndLV, colNum, textMaxLen, header);
-   
+   AddMenus(hWnd);
    ShowWindow(hWndLV, SW_SHOWDEFAULT);
    
    if (!hWnd)
@@ -302,6 +295,20 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		wmEvent = HIWORD(wParam);
 		switch (wmId)
 		{
+		case ID_EXIT:
+		{
+			PostMessage(hWnd, WM_QUIT, 0, 0);
+		}
+		case ID_INFOBUTTON:
+		{
+			MessageBoxA(hWnd, "Creator: Martseniuk Roman\nYear:2017\nThis application has basic functions to play music, filter playlist and change id3 tags.", "About", MB_OK | MB_ICONINFORMATION);
+			break;
+		}
+		case ID_HELPBUTTON:
+		{
+			MessageBoxA(hWnd, "Button assignment:\nPlay - play song\nPause - make pause\nStop - stop song\nNext - play next song\nPrev - play previous song\nAdd - add song to playlist(you can add many songs at once)\nDelete - delete one song from playlist\nClose\Open - open ore closee additional panel\nChange tags - set id3 tags for song, that is sounds right now\nFilter - filter songs in playlist by input information\nTo change id3 tags you need to input some information to special boxes and press\"Change tags\".\nYou can play music by choosing it in special list which is situated on the right part of the window.\nYou can filter you playlist by singer and album. You need to choose one, input text in box below and press \"Filter\".", "Help", MB_OK | MB_ICONINFORMATION);
+			break;
+		}
 		case ID_BUTTONPLAY:
 		{
 			if (!pauseFlag)
@@ -986,4 +993,24 @@ LPWSTR MBStoWS(char * source)
 	int alen = MultiByteToWideChar(codePage, 0, source, -1, NULL, 0);
 	MultiByteToWideChar(codePage, 0, source, -1, dest, alen);
 	return dest;
+}
+
+void AddMenus(HWND hwnd) {
+
+	HMENU hMenubar;
+	HMENU hFile;
+	HMENU hHelp;
+	hMenubar = CreateMenu();
+	hFile = CreateMenu();
+	hHelp = CreateMenu();
+	AppendMenuW(hFile, MF_STRING, ID_BUTTONADD, L"&Add song");
+	AppendMenuW(hFile, MF_SEPARATOR, 0, NULL);
+	AppendMenuW(hFile, MF_STRING, ID_EXIT, L"&Quit");
+
+	AppendMenuW(hMenubar, MF_POPUP, (UINT_PTR)hFile, L"&File");
+
+	AppendMenuW(hHelp, MF_STRING, ID_HELPBUTTON, L"&Help");
+	AppendMenuW(hHelp, MF_STRING, ID_INFOBUTTON, L"&About");
+	AppendMenuW(hMenubar, MF_POPUP, (UINT_PTR)hHelp, L"&Info");
+	SetMenu(hwnd, hMenubar);
 }

@@ -177,7 +177,6 @@
     <ResourceCompile Include="MusicOrganizer.rc" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="6.bmp" />
     <Image Include="MusicOrganizer.ico" />
     <Image Include="small.ico" />
   </ItemGroup>
