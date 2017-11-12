@@ -518,7 +518,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				GetWindowText(hwndTBComment, ptr, 30);
 				strcpy(comment, WStoMBS(ptr));
 			
-				char* item[colNum] = { title, artist, nx };
+				char* item[colNum] = { title, artist, nx, album };
 				UpdateListViewItem(hWndLV, colNum, item);
 
 				
@@ -577,6 +577,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 							char* item[colNum] = { mp3fi.szTitle, mp3fi.szArtist,mp3fi.szFilename,mp3fi.szAlbum };
 							AddListViewItems(hWndLV, colNum, textMaxLen, item);
 						}
+						else
+						{
+							char* item[colNum] = { NULL, NULL,mp3fi.szFilename ,NULL };
+							AddListViewItems(hWndLV, colNum, textMaxLen, item);
+						}
 					}
 				}
 
@@ -609,6 +614,11 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						if (mp3fi.bHasV1Tag || mp3fi.bHasV2Tag)
 						{
 							char* item[colNum] = { mp3fi.szTitle, mp3fi.szArtist,mp3fi.szFilename ,mp3fi.szAlbum };
+							AddListViewItems(hWndLV, colNum, textMaxLen, item);
+						}
+						else
+						{
+							char* item[colNum] = { NULL, NULL,mp3fi.szFilename ,NULL };
 							AddListViewItems(hWndLV, colNum, textMaxLen, item);
 						}
 					}
@@ -865,9 +875,9 @@ VOID WINAPI UpdateListViewItem(HWND hWndLV, int colNum, char** item)
 {
 	for (int i = 0; i < colNum; i++)
 	{
-		if (item[i] == NULL)
-			item[i] = "";
-		if (i == 2)
+		if (!strcmp(item[i],""))
+			item[i] = "none";
+		if (i == 2 && strcmp(item[i], ""))
 		{
 			char *ssc;
 			int l = 0;
