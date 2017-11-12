@@ -305,139 +305,21 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			SetWindowText(hwndTBComment, TEXT(""));
 			break;
 		}
-	/*Исправить*/
 		case ID_BUTTONADD:
 		{
-			OPENFILENAME  ofn = { sizeof ofn };
-			wchar_t szFile[1024];       // buffer for file name
-			HWND hwnd;              // owner window
-			HANDLE hf;
-			szFile[0] = '\0';
-			ofn.lpstrFile = szFile;
-			ofn.nMaxFile = 1024;
-			ofn.hwndOwner = hWnd;
-			ofn.lpstrFilter = TEXT("Mp3 файл\0*.mp3\0Все файлы (*.*)\0*.*\0");
-			ofn.Flags = OFN_EXPLORER | OFN_FILEMUSTEXIST | OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT | OFN_ALLOWMULTISELECT;
-			std::vector<wchar_t*> files;
-			char* temp;
-			if (GetOpenFileName(&ofn) == TRUE)
-			{
-				wchar_t* ptr = ofn.lpstrFile;
-				wchar_t* dirName = ofn.lpstrFile;
-				ptr[ofn.nFileOffset - 1] = 0;
-				ptr += ofn.nFileOffset;
-				while (*ptr)
-				{
-					files.push_back(ptr);
-					ptr += (lstrlenW(ptr) + 1);
-				}
-				for (int i = 0; i < files.size(); i++)
-				{
-
-					temp = (char*)malloc(1000 + 1);
-					strcpy(temp, WStoMBS(dirName));
-					strcat(temp, "\\");
-					strcat(temp, WStoMBS(files[i]));
-					//songList.push_back(temp);
-					tempSongList.push_back(temp);
-					BOOL init = false;
-					id_tag mp3tag;
-					ZeroMemory(&mp3tag, sizeof mp3tag);
-
-					if (mp3fi.Init(temp))
-					{
-						ClearEditBoxes(hwndTBTitle, hwndTBArtist, hwndTBAlbum, hwndTBYear, hwndTBComment);
-						init = TRUE;
-						if (mp3fi.bHasV1Tag || mp3fi.bHasV2Tag)
-						{
-							//LPWSTR ptr = wtext;
-
-						/*	if (mp3fi.szTitle != NULL)
-								SetWindowText(hwndTBTitle, MBStoWS(mp3fi.szTitle));
-
-							if (mp3fi.szArtist != NULL)
-								SetWindowText(hwndTBArtist, MBStoWS(mp3fi.szArtist));
-
-							if (mp3fi.szAlbum != NULL)
-								SetWindowText(hwndTBAlbum, MBStoWS(mp3fi.szAlbum));
-
-							if (mp3fi.szYear != NULL)
-								SetWindowText(hwndTBYear, MBStoWS(mp3fi.szYear));
-
-							if (mp3fi.szComment != NULL)
-								SetWindowText(hwndTBComment, MBStoWS(mp3fi.szComment));*/
-
-							char* item[colNum] = { mp3fi.szTitle, mp3fi.szArtist,mp3fi.szFilename, mp3fi.szAlbum };
-							itemsCount = AddListViewItems(hWndLV, colNum, textMaxLen, item);
-
-						}
-						else
-						{
-							char* item[colNum] = { NULL, NULL,mp3fi.szFilename, NULL };
-							itemsCount = AddListViewItems(hWndLV, colNum, textMaxLen, item);
-						}
-					}
-					else
-					{
-						MessageBox(hWnd, TEXT("Unable to initialize MP3Tag class"), TEXT("Error"), MB_ICONERROR);
-						char* item[colNum] = { NULL, NULL,NULL,NULL };
-						itemsCount =AddListViewItems(hWndLV, colNum, textMaxLen, item);
-					}
-					if (init) {
-						mp3fi.Free();
-						init = FALSE;
-					}
-				}
-				songList.clear();
-				for (int i = 0; i < tempSongList.size(); i++)
-				{
-					auto it = tempSongList.begin();
-					char * tempElement = *std::next(it, i);
-					songList.push_back(tempElement);
-				}
-				wchar_t resultString[256];
-				swprintf_s(resultString, L"%d/%d", selectedItemIndex + 1, tempSongList.size());
-				SendMessage(hwndLabelSongNumb, WM_SETTEXT, 0, (LPARAM)resultString);
-			}
+			AddSongs(hWnd, &tempSongList, &songList, &mp3fi, selectedItemIndex, &itemsCount,
+				hwndTBTitle,
+				hwndTBArtist,
+				hwndTBAlbum,
+				hwndTBYear,
+				hwndTBComment,
+				&hWndLV,
+				hwndLabelSongNumb);
 			break;
 		}
 		case ID_BUTTONTAGS:
 		{
-			id_tag mp3tag;
-			wchar_t buffer[250] = { 0 };
-			LPWSTR pointer = buffer;
-
-			auto iterator = songList.begin();
-			char * item = *std::next(iterator, selectedItemIndex);
-
-			char title[30];
-			GetWindowText(hwndTBTitle, pointer, 30);
-			strcpy(title, WStoMBS(pointer));
-
-			char artist[30];
-			GetWindowText(hwndTBArtist, pointer, 30);
-			strcpy(artist, WStoMBS(pointer));
-
-			char album[30];
-			GetWindowText(hwndTBAlbum, pointer, 30);
-			strcpy(album, WStoMBS(pointer));
-
-			char year[5];
-			GetWindowText(hwndTBYear, pointer, 5);
-			strcpy(year, WStoMBS(pointer));
-
-			char comment[30];
-			GetWindowText(hwndTBComment, pointer, 30);
-			strcpy(comment, WStoMBS(pointer));
-			
-			char* songItem[colNum] = { title, artist, item, album };
-			UpdateListViewItem(hWndLV, colNum, songItem,selectedItemIndex);
-
-			ZeroMemory(&mp3tag, sizeof mp3tag);
-			mp3fi.Change(item, title, album, artist, year, comment);
-
-			EnableWindow(hwndBtnChangeTags, FALSE);
-			UpdateWindow(hWndLV);
+			ChangeTags(songList, selectedItemIndex, &hWndLV, &mp3fi,hwndTBTitle,hwndTBArtist,hwndTBAlbum,hwndTBYear,hwndTBComment,hwndBtnChangeTags);
 			break;
 		}
 		case ID_BUTTONCLOP:
@@ -459,118 +341,9 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			MoveWindow(hWnd, rect.left,rect.top, width, 340, TRUE);
 			break;
 		}
-		/*исправить*/
 		case ID_BUTTONSEARCH:
 		{
-			wchar_t wtext[250] = { 0 };
-			LPWSTR ptr = wtext;
-			char searchString[30];
-			GetWindowText(hwndTBSearch, ptr, 30);
-			if (!wcscmp(ptr, TEXT("")))
-			{
-				BOOL init = false;
-				id_tag mp3tag;
-				wchar_t wtext[250] = { 0 };
-				ZeroMemory(&mp3tag, sizeof mp3tag);
-				ListView_DeleteAllItems(hWndLV);
-				songList.clear();
-				for (int i = 0; i < tempSongList.size(); i++)
-				{
-					auto it = tempSongList.begin();
-					char * tempElement = *std::next(it, i);
-					songList.push_back(tempElement);
-
-					if (mp3fi.Init(tempElement))
-					{
-						if (mp3fi.bHasV1Tag || mp3fi.bHasV2Tag)
-						{
-							char* item[colNum] = { mp3fi.szTitle, mp3fi.szArtist,mp3fi.szFilename,mp3fi.szAlbum };
-							itemsCount = AddListViewItems(hWndLV, colNum, textMaxLen, item);
-						}
-						else
-						{
-							char* item[colNum] = { NULL, NULL,mp3fi.szFilename ,NULL };
-							itemsCount = AddListViewItems(hWndLV, colNum, textMaxLen, item);
-						}
-					}
-				}
-
-				itemsCount = songList.size();
-				wchar_t resultString[256];
-				swprintf_s(resultString, L"%d/%d", selectedItemIndex + 1, tempSongList.size());
-				SendMessage(hwndLabelSongNumb, WM_SETTEXT, 0, (LPARAM)resultString);
-			}
-			else
-			{
-				BOOL init = false;
-				id_tag mp3tag;
-				wchar_t wtext[250] = { 0 };
-				ZeroMemory(&mp3tag, sizeof mp3tag);
-
-				strcpy(searchString, WStoMBS(ptr));
-
-				std::vector<int> items;
-				songList.clear();
-				ListView_DeleteAllItems(hWndLV);
-
-
-				for (int i = 0; i < tempSongList.size(); i++)
-				{
-					auto it = tempSongList.begin();
-					char * tempElement = *std::next(it, i);
-					songList.push_back(tempElement);
-					if (mp3fi.Init(tempElement))
-					{
-						if (mp3fi.bHasV1Tag || mp3fi.bHasV2Tag)
-						{
-							char* item[colNum] = { mp3fi.szTitle, mp3fi.szArtist,mp3fi.szFilename ,mp3fi.szAlbum };
-							itemsCount = AddListViewItems(hWndLV, colNum, textMaxLen, item);
-						}
-						else
-						{
-							char* item[colNum] = { NULL, NULL,mp3fi.szFilename ,NULL };
-							itemsCount = AddListViewItems(hWndLV, colNum, textMaxLen, item);
-						}
-					}
-				}
-				int indexOfColoumn;
-				if (SendMessage(hwndRBSinger, BM_GETCHECK, 0, 0))
-					indexOfColoumn = 1;
-				else
-					indexOfColoumn = 3;
-
-				for (int i = 0; i < tempSongList.size(); i++)
-				{
-					std::vector<wchar_t> bufText(256);
-					ListView_GetItemText(hWndLV, i, indexOfColoumn, &bufText[0], 256);
-					wchar_t* buf = reinterpret_cast<wchar_t*>(bufText.data());
-					if (wcsicmp(buf, ptr))
-						items.push_back(i);
-				}
-				
-				for (int i = items.size() - 1; i >= 0; i--)
-				{
-					std::list<char *>::iterator it = songList.begin();
-					std::advance(it, items[i]);
-					songList.erase(it);
-					ListView_DeleteItem(hWndLV, items[i]);
-
-				}
-				itemsCount = songList.size();
-				selectedItemIndex = -1;
-				wchar_t resultString[256];
-				
-				swprintf_s(resultString, L"%d/%d", selectedItemIndex + 1, songList.size());
-				SendMessage(hwndLabelSongNumb, WM_SETTEXT, 0, (LPARAM)resultString);
-				
-				SendMessage(hWnd, WM_COMMAND, ID_BUTTONSTOP, 0);
-				EnableWindow(hwndBtnChangeTags, FALSE);
-				EnableWindow(hwndBtnNext, FALSE);
-				EnableWindow(hwndBtnPlay, FALSE);
-				EnableWindow(hwndBtnPrev, FALSE);
-				//EnableWindow(hwndBtnChangeTags, FALSE);
-			}
-			
+			FilterSong(&songList, tempSongList, hWnd, hwndTBSearch, &hWndLV, &mp3fi, &itemsCount, selectedItemIndex,	hwndLabelSongNumb,	hwndBtnAdd,	hwndRBSinger,hwndBtnChangeTags,	hwndBtnNext,hwndBtnPlay,hwndBtnPrev);
 			break;
 		}
 		case ID_RADBUTSINGER:

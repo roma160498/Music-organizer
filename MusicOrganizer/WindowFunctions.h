@@ -3,7 +3,8 @@
 #include "MP3FileInfo.h"
 #include <CommCtrl.h>
 #include <list>
-
+#include <vector>
+#include "commdlg.h"
 HWND WINAPI CreateTrackbar(HWND, HWND *, UINT, UINT);
 int SetListViewColumns(HWND , int , int , char** );
 LPWSTR MBStoWS(char *);
@@ -22,6 +23,30 @@ VOID WINAPI ClearEditBoxes(HWND,
 	HWND);
 char* WStoMBS(LPWSTR );
 VOID WINAPI AddMenus(HWND);
+VOID WINAPI FilterSong(std::list <char*>*, std::list <char*>, HWND, HWND, HWND *, MP3FileInfo *, int *, int,
+	HWND,
+	HWND,
+	HWND,
+	HWND,
+	HWND,
+	HWND,
+	HWND
+);
+VOID WINAPI ChangeTags(std::list <char*>, int, HWND *, MP3FileInfo *,
+	HWND,
+	HWND,
+	HWND,
+	HWND,
+	HWND,
+	HWND);
+VOID WINAPI AddSongs(HWND, std::list <char*>*, std::list <char*>*, MP3FileInfo *, int, int*,
+	HWND,
+	HWND,
+	HWND,
+	HWND,
+	HWND,
+	HWND*,
+	HWND);
 struct id_tag {
 	char title[256];
 	char album[256];
