@@ -1,69 +1,9 @@
-/*
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-                        MP3FileInfo 1.0
-                    -----------------------
-
-  MP3FileInfo is a wrapper class for id3lib, a library capable
-  of reading and writing ID3 Tags of MP3 Files. It has a
-  simple interface and provides all data as public members.
-
-  Written by Christian Richardt (cr@whizer.net).
-
-  Release history:
-    Mai 31, 2003: Version 1.0. First release.
-
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
-*/
-
-/**
-  \file    MP3FileInfo.h
-  \brief   Reads Header and ID3 Tags of MP3 Files
-  \date    2003-05-31
-  \author  Christian Richardt (cr@whizer.net)
-**/
-
 #ifndef MP3FILEINFO_H
 #define MP3FILEINFO_H
+#define ID3LIB_LINKOPTION 3
+#include "id3/tag.h"
+#pragma comment(lib, "id3lib.lib")
 
-
-/* ---- use id3lib ---- */
-
-    // "If you use id3lib.dll (you link dynamic) you should add
-    //  ID3LIB_LINKOPTION=3 to your preprocessor definitions of your project."
-  #define ID3LIB_LINKOPTION 3
-  #include "id3/tag.h"
-  #pragma comment(lib, "id3lib.lib")
-
-
-    /**
-      \brief   Reads Header and ID3 Tags of MP3 Files
-
-      MP3FileInfo is a wrapper class for id3lib, a library capable
-      of reading and writing ID3 Tags of MP3 Files. It has a
-      simple interface and provides all data as public members.
-
-      How to use MP3FileInfo:
-
-      \code
-        MP3FileInfo obj; // don't use at this point!
-
-        if(!obj.Init("some-file.mp3"))
-         { ... error ... }
-
-        ... use MP3FileInfo ...
-      \end
-
-      The object frees all allocated memory if deleted. Always
-      Initalize this class by calling Init(). It returns false if
-      an error occured. You can call Init() as often as you want.
-      All data is being freed before the data of the new file is
-      extracted.
-
-      Always call isOK() to check whether the class is all right!
-    **/
   class MP3FileInfo
    {
     public:
@@ -134,11 +74,9 @@
       ID3_Tag* m_id3tag;
       const Mp3_Headerinfo* m_mp3header;
 
-      void m_parseFile(void);
       void m_parseHeader(void);
       void m_parseGenre(void);
 
-      bool  m_getString(ID3_FrameID fid, char* szBuffer);
       char* m_getNewString(ID3_FrameID fid);
    };
 

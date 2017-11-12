@@ -38,6 +38,7 @@
 #define ID_EXIT					29
 #define ID_INFOBUTTON			30
 #define ID_HELPBUTTON			31
+#define MAX_LOADSTRING 100
 #endif
 // Следующие стандартные значения для новых объектов
 //
