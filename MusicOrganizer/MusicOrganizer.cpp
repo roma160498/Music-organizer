@@ -19,16 +19,10 @@
                         name='Microsoft.Windows.Common-Controls' \
                         version='6.0.0.0' processorArchitecture='*'\
  publicKeyToken='6595b64144ccf1df' language='*'\"")
-
+#include "WindowFunctions.h"
 
 MP3FileInfo mp3fi;
-struct id_tag {
-	char title[256];
-	char album[256];
-	char artist[256];
-	char year[5];
-	char comment[256];
-};
+
 
 HINSTANCE hInst;                                
 WCHAR szTitle[MAX_LOADSTRING];                  
@@ -172,7 +166,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	SetListViewColumns(hWndLV, colNum, textMaxLen, header);
 
 	AddMenus(hWnd);
-	CreateTrackbar(hWnd, 0, 100);
+	CreateTrackbar(hWnd,&hwndTrack, 0, 100);
 
 	ShowWindow(hWndLV, SW_SHOWDEFAULT);
    
@@ -268,7 +262,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (selectedItemIndex<itemsCount-1)
 				selectedItemIndex++;
 			pauseFlag = false;
-			UpdateEditBoxes();
+			UpdateEditBoxes(songList, selectedItemIndex, &mp3fi, hwndTBTitle, hwndTBArtist, hwndTBAlbum, hwndTBYear, hwndTBComment);
 			SendMessage(hWnd, WM_COMMAND, ID_BUTTONPLAY, 0);
 			ListView_SetItemState(hWndLV, selectedItemIndex, LVIS_SELECTED, LVIS_SELECTED);
 			ListView_SetItemState(hWndLV, selectedItemIndex - 1, LVIF_STATE, LVIS_SELECTED);
@@ -284,7 +278,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			if (selectedItemIndex>0)
 				selectedItemIndex--;
 			pauseFlag = false;
-			UpdateEditBoxes();
+			UpdateEditBoxes(songList, selectedItemIndex, &mp3fi, hwndTBTitle, hwndTBArtist, hwndTBAlbum, hwndTBYear, hwndTBComment);
 			SendMessage(hWnd, WM_COMMAND, ID_BUTTONPLAY, 0);
 			ListView_SetItemState(hWndLV, selectedItemIndex, LVIS_SELECTED, LVIS_SELECTED);
 			ListView_SetItemState(hWndLV, selectedItemIndex + 1, LVIF_STATE, LVIS_SELECTED);
@@ -352,13 +346,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 
 					if (mp3fi.Init(temp))
 					{
-						ClearEditBoxes();
+						ClearEditBoxes(hwndTBTitle, hwndTBArtist, hwndTBAlbum, hwndTBYear, hwndTBComment);
 						init = TRUE;
 						if (mp3fi.bHasV1Tag || mp3fi.bHasV2Tag)
 						{
 							//LPWSTR ptr = wtext;
 
-							if (mp3fi.szTitle != NULL)
+						/*	if (mp3fi.szTitle != NULL)
 								SetWindowText(hwndTBTitle, MBStoWS(mp3fi.szTitle));
 
 							if (mp3fi.szArtist != NULL)
@@ -371,23 +365,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 								SetWindowText(hwndTBYear, MBStoWS(mp3fi.szYear));
 
 							if (mp3fi.szComment != NULL)
-								SetWindowText(hwndTBComment, MBStoWS(mp3fi.szComment));
+								SetWindowText(hwndTBComment, MBStoWS(mp3fi.szComment));*/
 
 							char* item[colNum] = { mp3fi.szTitle, mp3fi.szArtist,mp3fi.szFilename, mp3fi.szAlbum };
-							AddListViewItems(hWndLV, colNum, textMaxLen, item);
+							itemsCount = AddListViewItems(hWndLV, colNum, textMaxLen, item);
 
 						}
 						else
 						{
 							char* item[colNum] = { NULL, NULL,mp3fi.szFilename, NULL };
-							AddListViewItems(hWndLV, colNum, textMaxLen, item);
+							itemsCount = AddListViewItems(hWndLV, colNum, textMaxLen, item);
 						}
 					}
 					else
 					{
 						MessageBox(hWnd, TEXT("Unable to initialize MP3Tag class"), TEXT("Error"), MB_ICONERROR);
 						char* item[colNum] = { NULL, NULL,NULL,NULL };
-						AddListViewItems(hWndLV, colNum, textMaxLen, item);
+						itemsCount =AddListViewItems(hWndLV, colNum, textMaxLen, item);
 					}
 					if (init) {
 						mp3fi.Free();
@@ -437,7 +431,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			strcpy(comment, WStoMBS(pointer));
 			
 			char* songItem[colNum] = { title, artist, item, album };
-			UpdateListViewItem(hWndLV, colNum, songItem);
+			UpdateListViewItem(hWndLV, colNum, songItem,selectedItemIndex);
 
 			ZeroMemory(&mp3tag, sizeof mp3tag);
 			mp3fi.Change(item, title, album, artist, year, comment);
@@ -491,12 +485,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						if (mp3fi.bHasV1Tag || mp3fi.bHasV2Tag)
 						{
 							char* item[colNum] = { mp3fi.szTitle, mp3fi.szArtist,mp3fi.szFilename,mp3fi.szAlbum };
-							AddListViewItems(hWndLV, colNum, textMaxLen, item);
+							itemsCount = AddListViewItems(hWndLV, colNum, textMaxLen, item);
 						}
 						else
 						{
 							char* item[colNum] = { NULL, NULL,mp3fi.szFilename ,NULL };
-							AddListViewItems(hWndLV, colNum, textMaxLen, item);
+							itemsCount = AddListViewItems(hWndLV, colNum, textMaxLen, item);
 						}
 					}
 				}
@@ -530,12 +524,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 						if (mp3fi.bHasV1Tag || mp3fi.bHasV2Tag)
 						{
 							char* item[colNum] = { mp3fi.szTitle, mp3fi.szArtist,mp3fi.szFilename ,mp3fi.szAlbum };
-							AddListViewItems(hWndLV, colNum, textMaxLen, item);
+							itemsCount = AddListViewItems(hWndLV, colNum, textMaxLen, item);
 						}
 						else
 						{
 							char* item[colNum] = { NULL, NULL,mp3fi.szFilename ,NULL };
-							AddListViewItems(hWndLV, colNum, textMaxLen, item);
+							itemsCount = AddListViewItems(hWndLV, colNum, textMaxLen, item);
 						}
 					}
 				}
@@ -640,7 +634,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			selectedItemIndex = ListView_GetNextItem(hWndLV, -1, LVNI_ALL | LVNI_SELECTED);
 			if (selectedItemIndex >= 0)
 			{
-				UpdateEditBoxes();
+				UpdateEditBoxes(songList,selectedItemIndex,&mp3fi,hwndTBTitle, hwndTBArtist, hwndTBAlbum,hwndTBYear,hwndTBComment);
 				EnableWindow(hwndBtnChangeTags, TRUE);
 				EnableWindow(hwndBtnPlay, TRUE);
 				EnableWindow(hwndBtnNext, TRUE);
@@ -663,187 +657,4 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         return DefWindowProc(hWnd, message, wParam, lParam);
     }
     return 0;
-}
-
-HWND WINAPI CreateTrackbar(HWND hWnd, UINT iMin, UINT iMax)
-{
-	hwndTrack = CreateWindowEx(0, TRACKBAR_CLASS, TEXT("Trackbar Control"), WS_CHILD | WS_VISIBLE | TBS_AUTOTICKS | TBS_ENABLESELRANGE | TBS_HORZ,
-		110, 55, 200, 30, hWnd, (HMENU)ID_TRACKBAR, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
-	SendMessage(hwndTrack, TBM_SETRANGE, (WPARAM)TRUE, (LPARAM)MAKELONG(iMin, iMax));
-	SendMessage(hwndTrack, TBM_SETPAGESIZE, 0, (LPARAM)2);
-	SendMessage(hwndTrack, TBM_SETPOS, 1, 100);
-	return hwndTrack;
-}
-
-int SetListViewColumns(HWND hWndLV, int colNum, int textMaxLen, char** header)
-{
-	int index = -1;
-	LVCOLUMN lvc;
-	lvc.mask = LVCF_TEXT | LVCF_WIDTH;
-	lvc.cchTextMax = textMaxLen;
-	for (int i = 0; i < colNum; i++)
-	{
-		lvc.pszText = MBStoWS(header[i]);
-		index = ListView_InsertColumn(hWndLV, i, &lvc);
-		if (index == -1)
-			break;
-	}
-	ListView_SetColumnWidth(hWndLV, 0, 140);
-	ListView_SetColumnWidth(hWndLV, 1, 140);
-	ListView_SetColumnWidth(hWndLV, 2, 140);
-	ListView_SetColumnWidth(hWndLV, 3, 140);
-	return index;
-}
-
-HWND CreateListView(HWND hWndParent, UINT uId)
-{
-	INITCOMMONCONTROLSEX icex;
-	RECT rcl;
-
-	icex.dwSize = sizeof(INITCOMMONCONTROLSEX);
-	icex.dwICC = ICC_LISTVIEW_CLASSES;
-	InitCommonControlsEx(&icex);
-	GetClientRect(hWndParent, &rcl);
-	HWND hWndLV = CreateWindow(WC_LISTVIEW, TEXT("ListView"), WS_CHILD | WS_VISIBLE | WS_VSCROLL | ES_AUTOVSCROLL | LBS_NOTIFY | LVS_REPORT | WS_CLIPSIBLINGS | LVS_AUTOARRANGE | LVS_SHOWSELALWAYS, 450, 0, 600, rcl.bottom - rcl.top, hWndParent, (HMENU)uId, GetModuleHandle(NULL), NULL);
-	ListView_SetExtendedListViewStyleEx(hWndLV, 0, LVS_EX_FULLROWSELECT | LVS_EX_LABELTIP | LVS_EX_GRIDLINES | LVS_EX_ONECLICKACTIVATE| LVS_EX_COLUMNSNAPPOINTS);
-	return (hWndLV);
-}
-
-BOOL WINAPI AddListViewItems(HWND hWndLV, int colNum, int textMaxLen, char** item)
-{
-	int iLastIndex = ListView_GetItemCount(hWndLV);
-	LVITEM lvi;
-	lvi.mask = LVIF_TEXT;
-	lvi.cchTextMax = textMaxLen;
-	lvi.iItem = iLastIndex;
-	lvi.pszText = NULL;
-	lvi.iSubItem = 0;
-
-	if (ListView_InsertItem(hWndLV, &lvi) == -1)
-		return FALSE;
-	for (int i = 0; i < colNum; i++)
-	{
-		if (i == 2 && item[i] != NULL)
-		{
-			char *temp;
-			int l = 0;
-			temp = strstr(item[i], "\\");
-			do {
-				l = strlen(temp) + 1;
-				item[i] = &item[i][strlen(item[i]) - l + 2];
-				temp = strstr(item[i], "\\");
-			} while (temp);
-		}
-		if (item[i] == NULL)
-			item[i] = "none";
-		ListView_SetItemText(hWndLV, iLastIndex, i, MBStoWS(item[i]));
-	}
-	itemsCount = iLastIndex + 1;
-	return TRUE;
-}
-
-VOID WINAPI UpdateListViewItem(HWND hWndLV, int colNum, char** item)
-{
-	for (int i = 0; i < colNum; i++)
-	{
-		if (!strcmp(item[i],""))
-			item[i] = "none";
-		if (i == 2 && strcmp(item[i], ""))
-		{
-			char *temp;
-			int l = 0;
-			temp = strstr(item[i], "\\");
-			do {
-				l = strlen(temp) + 1;
-				item[i] = &item[i][strlen(item[i]) - l + 2];
-				temp = strstr(item[i], "\\");
-			} while (temp);
-		}
-		LPWSTR dest = new WCHAR[MAX_PATH];
-		const int codePage = CP_ACP; 
-		int alen = MultiByteToWideChar(codePage, 0, item[i], -1, NULL, 0);
-		MultiByteToWideChar(codePage, 0, item[i], -1, dest, alen);
-		ListView_SetItemText(hWndLV, selectedItemIndex, i, dest);
-		}
-}
-
-VOID WINAPI UpdateEditBoxes()
-{
-	BOOL init = false;
-	id_tag mp3tag;
-	wchar_t buffer[250] = { 0 };
-	ZeroMemory(&mp3tag, sizeof mp3tag);
-
-	auto iterator = songList.begin();
-	char * item = *std::next(iterator, selectedItemIndex);
-
-	if (mp3fi.Init(item))
-	{
-		ClearEditBoxes();
-		init = TRUE;
-		if (mp3fi.bHasV1Tag || mp3fi.bHasV2Tag)
-		{
-			LPWSTR ptr = buffer;
-			if (mp3fi.szTitle != NULL) 
-				SetWindowText(hwndTBTitle, MBStoWS(mp3fi.szTitle));
-			if (mp3fi.szArtist != NULL) 
-				SetWindowText(hwndTBArtist, MBStoWS(mp3fi.szArtist));
-			if (mp3fi.szAlbum != NULL) 
-				SetWindowText(hwndTBAlbum, MBStoWS(mp3fi.szAlbum));
-			if (mp3fi.szYear != NULL) 
-				SetWindowText(hwndTBYear, MBStoWS(mp3fi.szYear));
-			if (mp3fi.szComment != NULL) 
-				SetWindowText(hwndTBComment, MBStoWS(mp3fi.szComment));
-		}
-	}
-
-	if (init) 
-	{
-		mp3fi.Free();
-		init = FALSE;
-	}
-}
-
-VOID WINAPI ClearEditBoxes()
-{
-	SetWindowText(hwndTBTitle, TEXT(""));
-	SetWindowText(hwndTBArtist, TEXT(""));
-	SetWindowText(hwndTBAlbum, TEXT(""));
-	SetWindowText(hwndTBYear, TEXT(""));
-	SetWindowText(hwndTBComment, TEXT(""));
-}
-
-char* WStoMBS(LPWSTR source)
-{
-	char buffer[MAX_PATH] = { 0 }; 
-	size_t sizeRequired = WideCharToMultiByte(950, 0, source, -1,NULL, 0, NULL, NULL);
-	sizeRequired = WideCharToMultiByte(CP_ACP,WC_COMPOSITECHECK,source,-1, buffer,sizeof(buffer),NULL, NULL);
-	return buffer;
-}
-
-LPWSTR MBStoWS(char * source)
-{
-	LPWSTR dest = new WCHAR[MAX_PATH];
-	const int codePage = CP_ACP;
-	int alen = MultiByteToWideChar(codePage, 0, source, -1, NULL, 0);
-	MultiByteToWideChar(codePage, 0, source, -1, dest, alen);
-	return dest;
-}
-
-VOID WINAPI AddMenus(HWND hwnd)
-{
-	HMENU hMenubar;
-	HMENU hFile;
-	HMENU hHelp;
-	hMenubar = CreateMenu();
-	hFile = CreateMenu();
-	hHelp = CreateMenu();
-	AppendMenuW(hFile, MF_STRING, ID_BUTTONADD, L"&Add song");
-	AppendMenuW(hFile, MF_SEPARATOR, 0, NULL);
-	AppendMenuW(hFile, MF_STRING, ID_EXIT, L"&Quit");
-	AppendMenuW(hMenubar, MF_POPUP, (UINT_PTR)hFile, L"&File");
-	AppendMenuW(hHelp, MF_STRING, ID_HELPBUTTON, L"&Help");
-	AppendMenuW(hHelp, MF_STRING, ID_INFOBUTTON, L"&About");
-	AppendMenuW(hMenubar, MF_POPUP, (UINT_PTR)hHelp, L"&Info");
-	SetMenu(hwnd, hMenubar);
 }
