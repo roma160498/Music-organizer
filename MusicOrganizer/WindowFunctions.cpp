@@ -80,7 +80,7 @@ INT WINAPI AddListViewItems(HWND hWndLV, int colNum, int textMaxLen, char** item
 				temp = strstr(item[i], "\\");
 			} while (temp);
 		}
-		if (item[i] == NULL)
+		if (item[i] == NULL || !strcmp(item[i], ""))
 			item[i] = "none";
 		ListView_SetItemText(hWndLV, iLastIndex, i, MBStoWS(item[i]));
 	}

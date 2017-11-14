@@ -128,7 +128,7 @@ BOOL InitInstance(HINSTANCE hInstance, int nCmdShow)
 	hwndLabelVol = CreateWindow(TEXT("static"), TEXT("Volume"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 10, 55, 50, 15, hWnd, (HMENU)(501), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
 	hwndLabelTitle = CreateWindow(TEXT("static"), TEXT("Title [30]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 10, 85, 57, 17, hWnd, (HMENU)(502), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
 	hwndTBTitle = CreateWindow(TEXT("Edit"), NULL, WS_BORDER | WS_CHILD | WS_VISIBLE | ES_AUTOHSCROLL, 110, 85, 310, 20, hWnd, (HMENU)ID_TEXTBOXTITLE, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), 0);
-	hwndLabelArtist = CreateWindow(TEXT("static"), TEXT("Artist [30]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 10, 115, 65, 17, hWnd, (HMENU)(503), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
+	hwndLabelArtist = CreateWindow(TEXT("static"), TEXT("Singer [30]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 10, 115, 70, 17, hWnd, (HMENU)(503), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
 	hwndTBArtist = CreateWindow(TEXT("Edit"), NULL, WS_BORDER | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 110, 115, 310, 20, hWnd, (HMENU)ID_TEXTBOXARTIST, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), 0);
 	hwndLabelAlbum = CreateWindow(TEXT("static"), TEXT("Album [30]"), WS_CHILD | WS_VISIBLE | WS_TABSTOP, 10, 145, 70, 17, hWnd, (HMENU)(504), (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), NULL);
 	hwndTBAlbum = CreateWindow(TEXT("Edit"), NULL, WS_BORDER | WS_CHILD | WS_VISIBLE | WS_TABSTOP, 110, 145, 310, 20, hWnd, (HMENU)ID_TEXTBOXALBUM, (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE), 0);
@@ -229,7 +229,10 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 					MessageBox(NULL, TEXT("Error."), NULL, 0);
 					return 1;
 				}
+				ListView_SetItemState(hWndLV, selectedItemIndex, LVIS_SELECTED, LVIS_SELECTED);
+				ListView_SetItemState(hWndLV, selectedItemIndex + 1, LVIF_STATE, LVIS_SELECTED);
 			}
+
 			BASS_ChannelPlay(stream, FALSE);
 			EnableWindow(hwndBtnPlay, FALSE);
 			EnableWindow(hwndBtnPause, TRUE);
@@ -297,6 +300,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				ListView_DeleteItem(hWndLV, selectedItemIndex);
 				itemsCount--;
 				SendMessage(hWnd, WM_COMMAND, ID_BUTTONSTOP, 0);
+				selectedItemIndex = 0;
 			}
 			SetWindowText(hwndTBTitle, TEXT(""));
 			SetWindowText(hwndTBArtist, TEXT(""));
