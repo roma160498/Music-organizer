@@ -4,7 +4,6 @@
 #include "MusicOrganizer.h"
 #include "bass.h"
 #include "commdlg.h"
-
 #include <CommCtrl.h>
 #include <list>
 #include <iostream>
@@ -87,7 +86,16 @@ int APIENTRY wWinMain(_In_ HINSTANCE hInstance,_In_opt_ HINSTANCE hPrevInstance,
 
     return (int) msg.wParam;
 }
+LRESULT OnCtlColorStatic(HDC hdc, HWND hCtl)
+{
+	if (hCtl == hwndLabelComment)
+	{
+		SetBkColor(hdc, 1);
 
+		return (LRESULT)GetStockObject(HOLLOW_BRUSH);
+	}
+	return 0;
+}
 ATOM MyRegisterClass(HINSTANCE hInstance)
 {
     WNDCLASSEXW wcex;
@@ -262,30 +270,30 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			wchar_t resultString[256];
 			BASS_ChannelStop(stream);
 			BASS_StreamFree(stream);
-			if (selectedItemIndex<itemsCount-1)
+			if (selectedItemIndex < itemsCount - 1)
 				selectedItemIndex++;
 			pauseFlag = false;
 			UpdateEditBoxes(songList, selectedItemIndex, &mp3fi, hwndTBTitle, hwndTBArtist, hwndTBAlbum, hwndTBYear, hwndTBComment);
 			SendMessage(hWnd, WM_COMMAND, ID_BUTTONPLAY, 0);
 			ListView_SetItemState(hWndLV, selectedItemIndex, LVIS_SELECTED, LVIS_SELECTED);
 			ListView_SetItemState(hWndLV, selectedItemIndex - 1, LVIF_STATE, LVIS_SELECTED);
-			swprintf_s(resultString, L"%d/%d", selectedItemIndex+1, songList.size());
+			swprintf_s(resultString, L"%d/%d", selectedItemIndex + 1, songList.size());
 			SendMessage(hwndLabelSongNumb, WM_SETTEXT, 0, (LPARAM)resultString);
 			break;
 		}
 		case ID_BUTTONPREV:
-		{	
+		{
 			wchar_t resultString[256];
 			BASS_ChannelStop(stream);
 			BASS_StreamFree(stream);
-			if (selectedItemIndex>0)
+			if (selectedItemIndex > 0)
 				selectedItemIndex--;
 			pauseFlag = false;
 			UpdateEditBoxes(songList, selectedItemIndex, &mp3fi, hwndTBTitle, hwndTBArtist, hwndTBAlbum, hwndTBYear, hwndTBComment);
 			SendMessage(hWnd, WM_COMMAND, ID_BUTTONPLAY, 0);
 			ListView_SetItemState(hWndLV, selectedItemIndex, LVIS_SELECTED, LVIS_SELECTED);
 			ListView_SetItemState(hWndLV, selectedItemIndex + 1, LVIF_STATE, LVIS_SELECTED);
-			swprintf_s(resultString, L"%d/%d", selectedItemIndex+1, songList.size());
+			swprintf_s(resultString, L"%d/%d", selectedItemIndex + 1, songList.size());
 			SendMessage(hwndLabelSongNumb, WM_SETTEXT, 0, (LPARAM)resultString);
 			break;
 		}
@@ -323,7 +331,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		case ID_BUTTONTAGS:
 		{
-			ChangeTags(songList, selectedItemIndex, &hWndLV, &mp3fi,hwndTBTitle,hwndTBArtist,hwndTBAlbum,hwndTBYear,hwndTBComment,hwndBtnChangeTags);
+			ChangeTags(songList, selectedItemIndex, &hWndLV, &mp3fi, hwndTBTitle, hwndTBArtist, hwndTBAlbum, hwndTBYear, hwndTBComment, hwndBtnChangeTags);
 			break;
 		}
 		case ID_BUTTONCLOP:
@@ -342,12 +350,12 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 				SendMessage(hwndBtnOpenClose, WM_SETTEXT, 0, (LPARAM)TEXT("Close"));
 			}
 			openFlag = !openFlag;
-			MoveWindow(hWnd, rect.left,rect.top, width, 340, TRUE);
+			MoveWindow(hWnd, rect.left, rect.top, width, 340, TRUE);
 			break;
 		}
 		case ID_BUTTONSEARCH:
 		{
-			FilterSong(&songList, tempSongList, hWnd, hwndTBSearch, &hWndLV, &mp3fi, &itemsCount, selectedItemIndex,	hwndLabelSongNumb,	hwndBtnAdd,	hwndRBSinger,hwndBtnChangeTags,	hwndBtnNext,hwndBtnPlay,hwndBtnPrev);
+			FilterSong(&songList, tempSongList, hWnd, hwndTBSearch, &hWndLV, &mp3fi, &itemsCount, selectedItemIndex, hwndLabelSongNumb, hwndBtnAdd, hwndRBSinger, hwndBtnChangeTags, hwndBtnNext, hwndBtnPlay, hwndBtnPrev);
 			break;
 		}
 		case ID_RADBUTSINGER:
@@ -411,7 +419,7 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 			selectedItemIndex = ListView_GetNextItem(hWndLV, -1, LVNI_ALL | LVNI_SELECTED);
 			if (selectedItemIndex >= 0)
 			{
-				UpdateEditBoxes(songList,selectedItemIndex,&mp3fi,hwndTBTitle, hwndTBArtist, hwndTBAlbum,hwndTBYear,hwndTBComment);
+				UpdateEditBoxes(songList, selectedItemIndex, &mp3fi, hwndTBTitle, hwndTBArtist, hwndTBAlbum, hwndTBYear, hwndTBComment);
 				EnableWindow(hwndBtnChangeTags, TRUE);
 				EnableWindow(hwndBtnPlay, TRUE);
 				EnableWindow(hwndBtnNext, TRUE);
@@ -427,6 +435,23 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
 		}
 		break;
 	}
+	case WM_PAINT:
+	{
+		PAINTSTRUCT ps;
+		BeginPaint(hWnd, &ps);
+		FillRect(ps.hdc, &ps.rcPaint, CreateSolidBrush(RGB(255,255,255)));
+		EndPaint(hWnd, &ps);
+		break;
+	}
+	case WM_CTLCOLORSTATIC:
+	{
+		HDC hdcStatic = (HDC)wParam;
+		SetTextColor(hdcStatic, RGB(0, 0, 0));
+		SetBkColor(hdcStatic, RGB(255, 255, 255));
+		return (INT_PTR)CreateSolidBrush(RGB(255, 255, 255));
+	}
+
+	
     case WM_DESTROY:
         PostQuitMessage(0);
         break;

@@ -6,10 +6,9 @@
 #include <vector>
 #include "commdlg.h"
 HWND WINAPI CreateTrackbar(HWND, HWND *, UINT, UINT);
+HWND CreateListView(HWND, UINT);
 int SetListViewColumns(HWND , int , int , char** );
-LPWSTR MBStoWS(char *);
-HWND CreateListView(HWND , UINT );
-INT WINAPI AddListViewItems(HWND , int , int , char**);
+INT WINAPI AddListViewItems(HWND, int, int, char**);
 VOID WINAPI UpdateListViewItem(HWND, int, char**, int);
 VOID WINAPI UpdateEditBoxes(std::list<char *>, int, MP3FileInfo *, HWND,
 	HWND,
@@ -22,6 +21,7 @@ VOID WINAPI ClearEditBoxes(HWND,
 	HWND,
 	HWND);
 char* WStoMBS(LPWSTR );
+LPWSTR MBStoWS(char *);
 VOID WINAPI AddMenus(HWND);
 VOID WINAPI FilterSong(std::list <char*>*, std::list <char*>, HWND, HWND, HWND *, MP3FileInfo *, int *, int,
 	HWND,

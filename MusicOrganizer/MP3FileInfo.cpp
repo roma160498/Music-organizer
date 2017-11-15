@@ -109,6 +109,7 @@
 	  default:                            szChannelMode = 0;
 	  }
   }
+ 
   bool MP3FileInfo::Change(const char* cszFilename, char * title, char * album, char * artist, char * year, char * comment)
   {
 	  Free();
